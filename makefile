@@ -1,13 +1,19 @@
 TARGET  :=  -o Pri-Render.exe
-CC      := nvcc
+TARGETDEBUG := -o Pri-Render-Debug.exe
+
+CC      := g++
 
 SOURCE_DIR := src
 CUH_SOURCES := $(wildcard $(addsuffix /*.cuh, $(SOURCE_DIR)))
 CU_SOURCES := $(wildcard $(addsuffix /*.cu, $(SOURCE_DIR)))
-FILES := $(CUH_SOURCES) $(CU_SOURCES)
+CPP_SOURCES := $(wildcard $(addsuffix /*.cpp, $(SOURCE_DIR)))
+CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
+
+ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
 #CFLAGS  := -std=c++20 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings -O3
-LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system -lGL
+LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system -lassimp -lGL
+DEBUGFLAGS := -g -lassimp
 
 STYLE_CHECKER := cpplint
 STYLE_HEADERS := --headers=cuh,h,hpp
@@ -17,12 +23,15 @@ all: compile
 # Compile
 compile:
 	@echo "Compiling"
-	$(CC) $(TARGET) $(CU_SOURCES) $(LDFLAGS) 
+	$(CC) $(TARGET) $(CPP_SOURCES) $(LDFLAGS) 
 
+debug:
+	@echo "Compiling Debug Build"
+	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(DEBUGFLAGS)
 #Style Check
 style:
 	@echo "Style Checking"
-	$(STYLE_CHECKER) $(STYLE_HEADERS) $(STYLE_EXTENSIONS) $(FILES)
+	$(STYLE_CHECKER) $(STYLE_HEADERS) $(STYLE_EXTENSIONS) $(ALL_FILES)
 
 clean:
-	rm -fr *.o
+	rm -fr *.o *.out *.exe
