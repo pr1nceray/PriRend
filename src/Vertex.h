@@ -1,14 +1,15 @@
 #pragma once
 #include <string>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <glm/vec2.hpp>
 #include <vector>
 #include <iostream>
 
 struct Vertex
 {
-    glm::vec3 Pos;
-    glm::vec3 Normal;
+    glm::vec4 Pos;
+    glm::vec4 Normal;
     glm::vec2 TQ;
 
 };
@@ -27,6 +28,7 @@ struct Mesh
     {
     }
 };
+
 
 void printMesh(const Mesh & mesh)
 {

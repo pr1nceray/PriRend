@@ -1,9 +1,11 @@
-#include "object.h"
+#include "scene.h"
 
 
 int main()
 {
-    object obj = object("./assets/cube.obj");
+    Scene s = Scene();
+    s.add_object("./assets/cube.obj");
+    s.render();
 }
 /*
 int main()

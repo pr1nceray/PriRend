@@ -46,8 +46,8 @@ class object
 
         for(size_t i = 0; i < mesh->mNumVertices;++i)
         {
-            glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-            glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+            glm::vec4 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1);
+            glm::vec4 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z, 1);
             glm::vec2 TQ;
 
             if(mesh->mTextureCoords[0])
