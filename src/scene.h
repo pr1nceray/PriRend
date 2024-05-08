@@ -1,6 +1,7 @@
 #pragma once
 #include "object.h"
 #include "Camera.h"
+#include <vector>
 //#include "Renderer.h>
 
 class Scene

@@ -2,13 +2,10 @@
 #include "object.h"
 #include "ray.h"
 #include "stb_image_write.h"
+
 #include <vector>
 
-#define WIDTH 300
-#define HEIGHT 200
 
-#define FOV_Y 60
-#define FOV_X 90
 
 class Camera
 {
@@ -17,17 +14,22 @@ class Camera
     
     Camera()
     {
-        Final_image.resize(WIDTH * HEIGHT);
+        Final_image.resize(WIDTH * HEIGHT * 3);
     }
 
     void draw(const std::vector<object> & obs)
     {
-        for(size_t i = 0; i < HEIGHT; ++i)
+        for(size_t y = 0; y < static_cast<size_t>(HEIGHT); ++y)
         {
-            for(size_t j = 0; j < WIDTH; ++j)
+            for(size_t x = 0; x < static_cast<size_t>(WIDTH); ++x)
             {
-                //spawn_ray(i * WIDTH + j, FOV_Y, FOV_X);
-                Final_image[i * WIDTH + j] = glm::vec3(static_cast<float>(i)/WIDTH, static_cast<float>(j)/HEIGHT, 1.0f);
+                spawnRay(x, y, FOV_Y, FOV_X);
+                
+                size_t index = 3 * (x * WIDTH + y);
+                std::cout << index << "\n";
+                Final_image[index] = 255.0f * static_cast<float>(y)/HEIGHT; 
+                Final_image[index + 1]  = 255.0f * static_cast<float>(x)/WIDTH;
+                Final_image[index + 2]  = 255.0f;
             }
         }
         stbi_write_png("Output.png", WIDTH, HEIGHT, 3, Final_image.data(), WIDTH * 3);
@@ -36,5 +38,5 @@ class Camera
     private:
     glm::vec4 cent;
     glm::vec4 rot;
-    std::vector<glm::vec3> Final_image;
+    std::vector<uint8_t> Final_image;
 };
