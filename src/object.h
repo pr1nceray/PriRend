@@ -21,17 +21,26 @@ class object
         CreateMeshes(scene->mRootNode, scene);
     }
 
+    /*
+    * Getters
+    */
+
+    const std::vector<Mesh> & getObjInfo() const
+    {
+        return objInfo;
+    }
+
     private:
     glm::vec3 Center;
     glm::vec3 Rot;
-    std::vector<Mesh> Vertexs;
+    std::vector<Mesh> objInfo;
 
     void CreateMeshes(aiNode * node, const aiScene * scene)
     {
         for(size_t i = 0; i < node->mNumMeshes;++i)
         {
             aiMesh * mesh = scene->mMeshes[node->mMeshes[i]];   
-            Vertexs.push_back(processMesh(mesh, scene));
+            objInfo.push_back(processMesh(mesh, scene));
         }
 
         for(size_t i = 0; i < node->mNumChildren;++i)
@@ -60,24 +69,21 @@ class object
             Vertex v_add {pos, norm, TQ};
             tmp_mesh.Indicies.push_back(v_add);
         }
-
+        //std::cout << "num vertexes : " << tmp_mesh.Indicies.size() << "\n";
         for(size_t i = 0; i < mesh->mNumFaces; ++i)
         {
             aiFace face_add = mesh->mFaces[i];
             glm::vec3 index_for_face;
-            for(size_t i = 0; i < face_add.mNumIndices; ++i)
-            {
-                if(i > 2)
-                {
-                    throw std::runtime_error("Face with > 3 vertexes found");
-                }
+            
+            //Gaurenteed <= 3 vertexes due to assimp option above.
+            index_for_face.x = face_add.mIndices[0];
+            index_for_face.y = face_add.mIndices[1];
+            index_for_face.z = face_add.mIndices[2];
 
-                index_for_face[i] = face_add.mIndices[i];
-            }
             tmp_mesh.Faces.push_back(index_for_face);
         }
         
-        printMesh(tmp_mesh);
+        //printMesh(tmp_mesh);
         return tmp_mesh;
     }
 };

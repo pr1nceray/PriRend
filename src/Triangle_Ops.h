@@ -2,7 +2,9 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "Vertex.h"
 
 
 
+/*
+* Responsible for checking if a ray intersects a triangle.
+*/

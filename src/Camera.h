@@ -36,6 +36,15 @@ class Camera
     }
 
     private:
+
+    /*
+    * TODO : write_image that takes in final image and creates stbi compatible array.
+    */
+    void Write_Image()
+    {
+        
+    }
+
     glm::vec4 cent;
     glm::vec4 rot;
     std::vector<uint8_t> Final_image;

@@ -8,14 +8,16 @@
 
 struct Vertex
 {
-    glm::vec4 Pos;
-    glm::vec4 Normal;
+    glm::vec3 Pos;
+    glm::vec3 Normal;
     glm::vec2 TQ;
 
 };
 
 struct Mesh
 {
+    //note : Contains duplicates and not in order of obj file.
+    //need to find a way to trim down on vertexes maybe.
     std::vector<Vertex> Indicies;
     std::vector<glm::vec3> Faces;
     uint32_t mat_index;
