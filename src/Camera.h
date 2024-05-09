@@ -27,9 +27,9 @@ class Camera
                 
                 size_t index = 3 * (y * WIDTH + x);
                 //std::cout << index << "\n";
-                Final_image[index] = 250.0f * static_cast<float>(y)/HEIGHT; 
-                Final_image[index + 1]  = 250.0f * static_cast<float>(x)/WIDTH;
-                Final_image[index + 2]  = 250.0f;
+                Final_image[index] = final.r; //250.0f * static_cast<float>(y)/HEIGHT; 
+                Final_image[index + 1] = final.g; //250.0f * static_cast<float>(x)/WIDTH;
+                Final_image[index + 2] = final.b; //250.0f;
             }
         }
         stbi_write_png("Output.png", WIDTH, HEIGHT, 3, Final_image.data(), WIDTH * 3);

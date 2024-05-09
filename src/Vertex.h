@@ -24,9 +24,10 @@ struct Mesh
     //need to find a way to trim down on vertexes maybe.
     std::vector<Vertex> Indicies;
     std::vector<glm::vec3> Faces;
-    std::vector<glm::vec3> FaceNormals;
 
+    std::vector<glm::vec3> FaceNormals;
     std::vector<glm::vec3> FaceNormalOrigins; //potentially uneeded. if unused, delete.
+    std::vector<glm::vec3> EdgeMap;
 
     uint32_t mat_index;
     Mesh() : mat_index(0)
@@ -42,6 +43,8 @@ struct Mesh
     {
         FaceNormals.resize(Faces.size());
         FaceNormalOrigins.resize(Faces.size());
+        EdgeMap.resize(Faces.size() * 2);
+
         for(size_t i = 0; i < Faces.size(); ++i)
         {
         
@@ -58,6 +61,10 @@ struct Mesh
     
         FaceNormals[i] = glm::normalize(glm::cross(ray_one,ray_two));
         FaceNormalOrigins[i] = glm::vec3(x_sum/3.0, y_sum/3.0, z_sum/3.0);
+
+        EdgeMap[i * 2] = ray_one;
+        EdgeMap[(i * 2) + 1] = ray_two;
+        
         }
     }
     
