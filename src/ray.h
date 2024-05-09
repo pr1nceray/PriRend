@@ -9,8 +9,8 @@
 #include "object.h"
 #include "Triangle_Ops.h"
 
-const int WIDTH = 300;
-const int HEIGHT = 200;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
@@ -19,7 +19,7 @@ const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 
 const int SPP = 1;
 
-const float epsil = .00001;
+const float epsil = .0000001;
 
 struct Ray
 {
@@ -41,8 +41,7 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     float determinant = glm::dot(P, Edge1);
 
     //NON BACKFACE CULLING
-    bool less = determinant > -epsil;
-    bool less2 = abs(determinant) > epsil;
+    float inv_det = 1.0/determinant;
     if(abs(determinant) < epsil) 
     {
         return false;
@@ -51,22 +50,23 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     glm::vec3 T = ray.Origin - PointA;
     glm::vec3 Q = glm::cross(T, Edge1);
 
-    float u_bar = glm::dot(P, T);
+    float u_bar = glm::dot(P, T) * inv_det;
 
-    if(u_bar < 0 || u_bar > determinant) 
+    if(u_bar < 0 || u_bar > 1) 
     {
         return false;
     }
 
-    float v_bar = glm::dot(Q, ray.Dir);
+    float v_bar = glm::dot(Q, ray.Dir) * inv_det;
 
-    if(v_bar < 0 ||  (v_bar + u_bar) > determinant) 
+    if(v_bar < 0 ||  (v_bar + u_bar) > 1) 
     {
         return false;
     }
+
     return true;
-
 }
+
 bool intersectsMesh(const Mesh & mesh, const Ray & ray) 
 {
     for(size_t i = 0; i < mesh.Faces.size(); ++i)
@@ -108,6 +108,7 @@ bool intersectsOBJ(const object & obj, const Ray & ray)
 */
 Color checkCollisions(Ray & ray, const std::vector<object> & objs) //need scene. 
 {
+    float distance = 0;
     for(size_t i = 0; i < objs.size();++i)
     {
         if(intersectsOBJ(objs[i], ray))
@@ -145,12 +146,8 @@ Color spawnRay(size_t x, size_t y, size_t fov_y, size_t fov_x, const std::vector
     {
         float u =  ASPECT_RATIO * (static_cast<float>(x) - (WIDTH/2.0))/WIDTH; //convert from x,y to -.5, .5
         float v = (static_cast<float>(y) - (HEIGHT/2.0))/HEIGHT; 
-        if(i == 0)
-        {
-            //std::cout << "ray dir : " << u << " , " << v << "\n";
-        }
         
-        Final += traceRay(u, v, objs);
+        Final += (traceRay(u, v, objs) * (1.0f/SPP));
     }
     return Final;
 }

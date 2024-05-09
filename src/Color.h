@@ -30,3 +30,8 @@ Color & operator+=(Color & lhs, const Color & rhs)
     lhs.b += rhs.b;
     return lhs;
 }
+
+Color operator*(const Color & lhs, const float & rhs)
+{
+    return Color(lhs.r * rhs, lhs.g * rhs, lhs.b * rhs);
+}
