@@ -7,7 +7,6 @@
 
 #include "Color.h"
 #include "object.h"
-#include "Triangle_Ops.h"
 
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
@@ -19,7 +18,7 @@ const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 
 const int SPP = 1;
 
-const float epsil = .0000001;
+const float epsil = .000001;
 
 struct Ray
 {
@@ -32,6 +31,13 @@ void normalizeRayDir(Ray & ray)
     ray.Dir = glm::normalize(ray.Dir);
 }
 
+struct CollisionInfo
+{
+    bool is_hit;
+    float distance;
+    Color hit_color;
+
+};
 
 bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
                  const glm::vec3 & Edge1, const glm::vec3 & Edge2)
@@ -63,6 +69,10 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     {
         return false;
     }
+
+    //NOTE : CALCULATE T!
+    float w_bar = 1 - u_bar - v_bar;
+
 
     return true;
 }

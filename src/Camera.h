@@ -5,8 +5,6 @@
 
 #include <vector>
 
-
-
 class Camera
 {
 
@@ -26,10 +24,9 @@ class Camera
                 Color final = spawnRay(x, y, FOV_Y, FOV_X , obs);
                 
                 size_t index = 3 * (y * WIDTH + x);
-                //std::cout << index << "\n";
-                Final_image[index] = final.r; //250.0f * static_cast<float>(y)/HEIGHT; 
-                Final_image[index + 1] = final.g; //250.0f * static_cast<float>(x)/WIDTH;
-                Final_image[index + 2] = final.b; //250.0f;
+                Final_image[index] = final.r;
+                Final_image[index + 1] = final.g;
+                Final_image[index + 2] = final.b;
             }
         }
         stbi_write_png("Output.png", WIDTH, HEIGHT, 3, Final_image.data(), WIDTH * 3);

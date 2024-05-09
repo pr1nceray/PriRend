@@ -1,4 +1,5 @@
 #pragma once
+#include "Color.h"
 
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
@@ -29,6 +30,7 @@ struct Mesh
     std::vector<glm::vec3> FaceNormalOrigins; //potentially uneeded. if unused, delete.
     std::vector<glm::vec3> EdgeMap;
 
+    Color mat;
     uint32_t mat_index;
     Mesh() : mat_index(0)
     {
@@ -37,6 +39,13 @@ struct Mesh
     Mesh(const std::vector<Vertex> & Indicies_in) :
     Indicies(Indicies_in), mat_index(0)
     {
+        uint8_t color = rand() % 255;
+        mat = Color(color, color, color);
+    }
+
+    Color getColor(size_t face_idx, float u, float v, float w)
+    {
+        return mat;
     }
 
     void generateNormals()
