@@ -19,6 +19,7 @@ class object
         }
         
         CreateMeshes(scene->mRootNode, scene);
+
     }
 
     /*
@@ -51,7 +52,7 @@ class object
 
     Mesh processMesh(aiMesh * mesh, const aiScene * scene)
     {
-        Mesh tmp_mesh;
+        Mesh meshlcl;
 
         for(size_t i = 0; i < mesh->mNumVertices;++i)
         {
@@ -67,9 +68,10 @@ class object
                 TQ = glm::vec2(0,0);
             }
             Vertex v_add {pos, norm, TQ};
-            tmp_mesh.Indicies.push_back(v_add);
+            meshlcl.Indicies.push_back(v_add);
         }
-        //std::cout << "num vertexes : " << tmp_mesh.Indicies.size() << "\n";
+
+        //std::cout << "num vertexes : " << meshlcl.Indicies.size() << "\n";
         for(size_t i = 0; i < mesh->mNumFaces; ++i)
         {
             aiFace face_add = mesh->mFaces[i];
@@ -80,10 +82,12 @@ class object
             index_for_face.y = face_add.mIndices[1];
             index_for_face.z = face_add.mIndices[2];
 
-            tmp_mesh.Faces.push_back(index_for_face);
+            meshlcl.Faces.push_back(index_for_face);
         }
         
-        //printMesh(tmp_mesh);
-        return tmp_mesh;
+        meshlcl.generateNormals();
+        printMesh(meshlcl);
+        return meshlcl;
     }
+
 };

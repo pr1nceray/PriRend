@@ -17,6 +17,8 @@ const float ASPECT_RATIO = WIDTH/HEIGHT;
 
 const int SPP = 16;
 
+const float epsilon = .0000005;
+
 struct Ray
 {
     glm::vec3 Origin;
@@ -25,37 +27,28 @@ struct Ray
 
 void normalizeRayDir(Ray & ray)
 {
-    float magnitude = sqrt((ray.Dir.x * ray.Dir.x) +  (ray.Dir.y * ray.Dir.y) + (ray.Dir.z * ray.Dir.z));
-    ray.Dir = glm::vec3(ray.Dir.x/magnitude, ray.Dir.y/magnitude, ray.Dir.z/magnitude);
-}
-
-/*
-* Obtain the normal vector from 3 points
-*/
-Ray obtainNormal(const glm::vec3 & PointA, const glm::vec3 & PointB, const glm::vec3 PointC)
-{
-    //point a,b and point a, c
-    const glm::vec3 ray_one = glm::vec3(PointB.x - PointA.x, PointB.y - PointA.y, PointB.z - PointA.z);
-    const glm::vec3 ray_two = glm::vec3(PointC.x - PointA.x, PointC.y - PointA.y, PointC.z - PointA.z);
-
-    float x_sum = PointA.x + PointB.x + PointC.x;
-    float y_sum = PointA.y + PointB.y + PointC.y;
-    float z_sum = PointA.z + PointB.z + PointC.z;
-
-    Ray normal;
-    normal.Dir = glm::cross(ray_one,ray_two);
-    normal.Origin = glm::vec3(x_sum/3.0, y_sum/3.0, z_sum/3.0);
-
-    return normal;
-
+    ray.Dir = glm::normalize(ray.Dir);
 }
 
 
 bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
                  const glm::vec3 & PointB, const glm::vec3 & PointC)
 {
+    //SHOULD BE DONE ON OBJECT CREATION
+    //NOT REQUIRED TO BE DONE DURING RENDERTIME
+    Ray normal = Ray(); //obtainNormal(PointA, PointB, PointC);
+
+    float n_dot_ray_origin = glm::dot(normal.Dir, ray.Origin);
+    float n_dot_ray_Dir= glm::dot(normal.Dir, ray.Dir);
+
+    if(abs(n_dot_ray_origin) < epsilon)
+    {
+        //int the case of perpendicularity, return true for simplicity
+        return true;
+    }
+    
+    //need to solve for constant D
     return false;
-    Ray normal = obtainNormal(PointA, PointB, PointC);
 
 }
 bool intersectsMesh(const Mesh & mesh, const Ray & ray) 
