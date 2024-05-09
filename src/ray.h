@@ -7,8 +7,8 @@
 #include "object.h"
 #include "Triangle_Ops.h"
 
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 300;
+const int HEIGHT = 200;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
@@ -72,14 +72,14 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray)
         const glm::vec3 Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
         const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge2
 
-        /*
+        
         if(ray.Dir == glm::vec3(0,0,1))
         {
         std::cout << PointA.x << " " << PointA.y << " " << PointA.z << "      ";
         std::cout << Edge1.x << " " << Edge1.y << " " << Edge1.z << "      ";
         std::cout << Edge2.x << " " << Edge2.y << " " << Edge2.z << "    \n";
         }
-        */
+        
         /*
         const glm::vec3 PointB = mesh.Indicies[mesh.Faces[i].y].Pos;
         const glm::vec3 PointC = mesh.Indicies[mesh.Faces[i].z].Pos;

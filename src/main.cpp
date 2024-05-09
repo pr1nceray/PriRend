@@ -4,7 +4,7 @@
 int main()
 {
     Scene s = Scene();
-    s.add_object("./assets/cube2.obj");
+    s.add_object("./assets/sphere.obj");
     s.render();
 }
 

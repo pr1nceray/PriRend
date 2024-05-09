@@ -56,8 +56,10 @@ class object
 
         for(size_t i = 0; i < mesh->mNumVertices;++i)
         {
-            glm::vec4 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1);
-            glm::vec4 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z, 1);
+            //y,z flipped in obj format
+            //y in obj is also mirrored (so we mulitply z by -1, since z is rlly y)!
+            glm::vec3 pos(mesh->mVertices[i].x, -1 * mesh->mVertices[i].z, mesh->mVertices[i].y);
+            glm::vec3 norm(mesh->mNormals[i].x, -1 * mesh->mNormals[i].z, mesh->mNormals[i].y);
             glm::vec2 TQ;
 
             if(mesh->mTextureCoords[0])
