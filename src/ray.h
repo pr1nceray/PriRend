@@ -2,6 +2,8 @@
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
+#include <math.h>
+
 
 #include "Color.h"
 #include "object.h"
@@ -17,7 +19,7 @@ const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 
 const int SPP = 1;
 
-const float epsilon = .00001;
+const float epsil = .00001;
 
 struct Ray
 {
@@ -39,7 +41,9 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     float determinant = glm::dot(P, Edge1);
 
     //NON BACKFACE CULLING
-    if(abs(determinant) < epsilon) 
+    bool less = determinant > -epsil;
+    bool less2 = abs(determinant) > epsil;
+    if(abs(determinant) < epsil) 
     {
         return false;
     }
@@ -67,23 +71,10 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray)
 {
     for(size_t i = 0; i < mesh.Faces.size(); ++i)
     {
-        
         const glm::vec3 PointA = mesh.Indicies[mesh.Faces[i].x].Pos;
         const glm::vec3 Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
-        const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge2
+        const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
 
-        
-        if(ray.Dir == glm::vec3(0,0,1))
-        {
-        std::cout << PointA.x << " " << PointA.y << " " << PointA.z << "      ";
-        std::cout << Edge1.x << " " << Edge1.y << " " << Edge1.z << "      ";
-        std::cout << Edge2.x << " " << Edge2.y << " " << Edge2.z << "    \n";
-        }
-        
-        /*
-        const glm::vec3 PointB = mesh.Indicies[mesh.Faces[i].y].Pos;
-        const glm::vec3 PointC = mesh.Indicies[mesh.Faces[i].z].Pos;
-        */
         if(intersectsTri(ray, PointA, Edge1, Edge2))
         {
             return true;

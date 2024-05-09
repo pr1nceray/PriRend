@@ -62,6 +62,7 @@ struct Mesh
         FaceNormals[i] = glm::normalize(glm::cross(ray_one,ray_two));
         FaceNormalOrigins[i] = glm::vec3(x_sum/3.0, y_sum/3.0, z_sum/3.0);
 
+        //BAD!
         EdgeMap[i * 2] = ray_one;
         EdgeMap[(i * 2) + 1] = ray_two;
         
