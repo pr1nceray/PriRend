@@ -1,8 +1,9 @@
-#pragma once
-#include "Color.h"
+#include "./Color.h"
 
 /*
-* Operators for Color class
+*
+* This file contains operators for Color class
+*
 */
 
 
