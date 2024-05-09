@@ -2,16 +2,16 @@
 
 struct Color
 {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;     
+  uint16_t r;
+  uint16_t g;
+  uint16_t b;     
   
   Color() :
   r(0), g(0), b(0)
   { 
   } 
 
-  Color(uint8_t r_in, uint8_t g_in, uint8_t b_in) :
+  Color(uint16_t r_in, uint16_t g_in, uint16_t b_in) :
   r(r_in), g(g_in), b(b_in)
   { 
   } 

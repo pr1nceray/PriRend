@@ -23,13 +23,13 @@ class Camera
         {
             for(size_t x = 0; x < static_cast<size_t>(WIDTH); ++x)
             {
-                spawnRay(x, y, FOV_Y, FOV_X);
+                Color final = spawnRay(x, y, FOV_Y, FOV_X , obs);
                 
-                size_t index = 3 * (x * WIDTH + y);
-                std::cout << index << "\n";
-                Final_image[index] = 255.0f * static_cast<float>(y)/HEIGHT; 
-                Final_image[index + 1]  = 255.0f * static_cast<float>(x)/WIDTH;
-                Final_image[index + 2]  = 255.0f;
+                size_t index = 3 * (y * WIDTH + x);
+                //std::cout << index << "\n";
+                Final_image[index] = 250.0f * static_cast<float>(y)/HEIGHT; 
+                Final_image[index + 1]  = 250.0f * static_cast<float>(x)/WIDTH;
+                Final_image[index + 2]  = 250.0f;
             }
         }
         stbi_write_png("Output.png", WIDTH, HEIGHT, 3, Final_image.data(), WIDTH * 3);
