@@ -1,5 +1,4 @@
 #pragma once
-
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
@@ -8,7 +7,7 @@
 #include <string>
 #include <assimp/Importer.hpp>
 
-#include "Vertex.h"
+#include "./Mesh.h"
 
 class Object {
     public:

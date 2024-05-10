@@ -1,15 +1,19 @@
 #pragma once
+
+#include <utility>
+#include <math.h>
+#include <limits.h>
+
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
-#include <math.h>
 
+#include "./Color.h"
+#include "./Object.h"
+#include "./Primitives.h"
 
-#include "Color.h"
-#include "Object.h"
-
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 300;
+const int HEIGHT = 200;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
@@ -20,77 +24,72 @@ const int SPP = 1;
 
 const float epsil = .000001;
 
-struct Ray
-{
-    glm::vec3 Origin;
-    glm::vec3 Dir;
-};
+using CollisionInfo = std::pair<int, glm::vec4>;
+
 
 void normalizeRayDir(Ray & ray)
 {
     ray.Dir = glm::normalize(ray.Dir);
 }
 
-struct CollisionInfo
-{
-    bool is_hit;
-    float distance;
-    Color hit_color;
 
-};
 
 bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
-                 const glm::vec3 & Edge1, const glm::vec3 & Edge2)
+                 const glm::vec3 & Edge1, const glm::vec3 & Edge2, glm::vec4 * out)
 {
     glm::vec3 P = glm::cross(ray.Dir, Edge2);
-
     float determinant = glm::dot(P, Edge1);
 
     //NON BACKFACE CULLING
+    if (abs(determinant) < epsil) {
+        return false;
+    }
+
     float inv_det = 1.0/determinant;
-    if(abs(determinant) < epsil) 
-    {
-        return false;
-    }
-
     glm::vec3 T = ray.Origin - PointA;
-    glm::vec3 Q = glm::cross(T, Edge1);
-
     float u_bar = glm::dot(P, T) * inv_det;
-
-    if(u_bar < 0 || u_bar > 1) 
-    {
+    if (u_bar < 0 || u_bar > 1) {
         return false;
     }
 
+    glm::vec3 Q = glm::cross(T, Edge1);
     float v_bar = glm::dot(Q, ray.Dir) * inv_det;
-
-    if(v_bar < 0 ||  (v_bar + u_bar) > 1) 
-    {
+    if (v_bar < 0 ||  (v_bar + u_bar) > 1) {
         return false;
     }
 
-    //NOTE : CALCULATE T!
     float w_bar = 1 - u_bar - v_bar;
-
-
+    out->x = glm::dot(Q, Edge2) * inv_det; //calculate T
+    out->y = w_bar;
+    out->z = u_bar;
+    out->w = v_bar;
     return true;
 }
 
-bool intersectsMesh(const Mesh & mesh, const Ray & ray) 
+CollisionInfo intersectsMesh(const Mesh & mesh, const Ray & ray) 
 {
+    int idx = -1;
+    glm::vec4 collisionClosest(std::numeric_limits<float>::infinity(), 0, 0, 0);
     for(size_t i = 0; i < mesh.Faces.size(); ++i)
     {
         const glm::vec3 PointA = mesh.Indicies[mesh.Faces[i].x].Pos;
         const glm::vec3 Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
         const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
 
-        if(intersectsTri(ray, PointA, Edge1, Edge2))
-        {
-            return true;
+        glm::vec4 collisionInfo;
+        // Checks if intersect
+        if(intersectsTri(ray, PointA, Edge1, Edge2, &collisionInfo)) {
+            // If so, are we closer than before? if not, we can discard result.
+            // Move up to take advantage of boolean short circuting
+            if(collisionInfo.x < collisionClosest.x) {
+                collisionClosest = collisionInfo;
+                idx = i;
+            }
         }
     }
-    return false;
+
+    //return i, and collision info.
+    return std::make_pair(idx, collisionClosest);
 }
 
 /*
@@ -99,12 +98,10 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray)
 
 bool intersectsOBJ(const Object & obj, const Ray & ray)
 {
-
-
-    for(size_t i = 0; i < obj.getObjInfo().size(); ++i)
-    {
-        if(intersectsMesh(obj.getObjInfo()[i], ray)) 
-        {
+    int closestObj = -1;
+    for(size_t i = 0; i < obj.getObjInfo().size(); ++i) {
+        CollisionInfo nearestIntersect = intersectsMesh(obj.getObjInfo()[i], ray);
+        if(nearestIntersect.first != -1) {
             //return true if we intersect with 
             //any of our meshes (may contain multiple)
             return true;

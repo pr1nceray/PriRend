@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "./Object.h"
-#include "./ray.h"
+#include "./rayOps.h"
 #include "./stb_image_write.h"
 
 /*
