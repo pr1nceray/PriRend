@@ -6,7 +6,7 @@
 
 
 #include "Color.h"
-#include "object.h"
+#include "Object.h"
 
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
@@ -97,7 +97,7 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray)
 * Responsible for checking if a ray collides with a specific object.
 */
 
-bool intersectsOBJ(const object & obj, const Ray & ray)
+bool intersectsOBJ(const Object & obj, const Ray & ray)
 {
 
 
@@ -116,7 +116,7 @@ bool intersectsOBJ(const object & obj, const Ray & ray)
 /*
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
-Color checkCollisions(Ray & ray, const std::vector<object> & objs) //need scene. 
+Color checkCollisions(Ray & ray, const std::vector<Object> & objs) //need scene. 
 {
     float distance = 0;
     for(size_t i = 0; i < objs.size();++i)
@@ -134,7 +134,7 @@ Color checkCollisions(Ray & ray, const std::vector<object> & objs) //need scene.
 * TraceRay is responsible for creating the ray and giving it a direction based on u,v.
 * Takes in the objects to determine collisions.
 */
-Color traceRay(float u, float v, const std::vector<object> & objs)
+Color traceRay(float u, float v, const std::vector<Object> & objs)
 {
     Ray ray;
     ray.Origin = glm::vec3(0, 0, 0); //model-world-camera conversion.
@@ -149,7 +149,7 @@ Color traceRay(float u, float v, const std::vector<object> & objs)
 * spawnRay is responsible for creating parameters and calling traceRay
 * Averages the findings of the samples (controlled by SPP), and returns a color.
 */
-Color spawnRay(size_t x, size_t y, size_t fov_y, size_t fov_x, const std::vector<object> & objs)
+Color spawnRay(size_t x, size_t y, size_t fov_y, size_t fov_x, const std::vector<Object> & objs)
 {   
     Color Final;
     for(size_t i = 0; i < SPP; ++i)

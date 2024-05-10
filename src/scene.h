@@ -1,5 +1,5 @@
 #pragma once
-#include "object.h"
+#include "Object.h"
 #include "Camera.h"
 #include <vector>
 //#include "Renderer.h>
@@ -7,7 +7,7 @@
 class Scene
 {
     private:
-    std::vector<object> Scene_Objects;
+    std::vector<Object> Scene_Objects;
     Camera cam;
     
     public:
@@ -19,6 +19,6 @@ class Scene
 
     void add_object(std::string obj_name)
     {
-        Scene_Objects.push_back(object(obj_name));
+        Scene_Objects.push_back(Object(obj_name));
     }
 };

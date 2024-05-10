@@ -1,8 +1,6 @@
-#include "scene.h"
+#include "./scene.h"
 
-
-int main()
-{
+int main() {
     Scene s = Scene();
     s.add_object("./assets/sphere.obj");
     s.add_object("./assets/cubestretch.obj");
