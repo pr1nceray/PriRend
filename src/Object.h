@@ -8,11 +8,30 @@
 #include <assimp/Importer.hpp>
 
 #include "./Mesh.h"
+#include "./Primitives.h"
 
 class Object {
     public:
     explicit Object(const std::string & file_name);
 
+    Color getMeshColor(const CollisionInfo & info) const {
+        float w = 1.0f - info.CollisionPoint.x - info.CollisionPoint.y;
+        return objInfo[info.meshIdx].getColor(info.faceIdx, w, info.CollisionPoint.x, info.CollisionPoint.y);
+    }
+
+    const glm::vec3 & getFaceNormal(const size_t meshIdx, const size_t faceIdx) const {
+        return objInfo[meshIdx].getFaceNormal(faceIdx);
+    }
+
+    Ray generateRandomVecOnFace(const size_t meshIdx, const size_t faceIdx, glm::vec3 & origin) {
+        glm::vec3 randVec = generateRandomVec();
+        glm::vec3 normal = getFaceNormal(meshIdx, faceIdx);
+        if(glm::dot(normal, randVec) < 0) {
+            randVec *= -1.0f;
+        }
+        glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
+        return Ray(newOrigin, randVec);
+    }
     /*
     * Getters
     */
@@ -20,7 +39,7 @@ class Object {
     const std::vector<Mesh> & getObjInfo() const;
     const glm::vec3 & getRot() const;
     const glm::vec3 & getCenter() const;
-
+    
     private:
     glm::vec3 Center;
     glm::vec3 Rot;
@@ -31,6 +50,6 @@ class Object {
     */
 
     void CreateMeshes(aiNode * node, const aiScene * scene);
-
     Mesh processMesh(aiMesh * mesh, const aiScene * scene);
+
 };

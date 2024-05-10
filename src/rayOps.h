@@ -12,20 +12,20 @@
 #include "./Object.h"
 #include "./Primitives.h"
 
-const int WIDTH = 300;
-const int HEIGHT = 200;
+const int WIDTH = 1200;
+const int HEIGHT = 800;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
-
 const int SPP = 1;
+const int BOUNCES = 5;
 
+const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
+const float infinity = std::numeric_limits<float>::infinity();
 
-using CollisionInfo = std::pair<int, glm::vec4>;
-
+using evalInfo = std::pair<bool, CollisionInfo>;
 
 void normalizeRayDir(Ray & ray)
 {
@@ -35,7 +35,7 @@ void normalizeRayDir(Ray & ray)
 
 
 bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
-                 const glm::vec3 & Edge1, const glm::vec3 & Edge2, glm::vec4 * out)
+                 const glm::vec3 & Edge1, const glm::vec3 & Edge2, CollisionInfo * out)
 {
     glm::vec3 P = glm::cross(ray.Dir, Edge2);
     float determinant = glm::dot(P, Edge1);
@@ -58,73 +58,80 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
         return false;
     }
 
-    float w_bar = 1 - u_bar - v_bar;
-    out->x = glm::dot(Q, Edge2) * inv_det; //calculate T
-    out->y = w_bar;
-    out->z = u_bar;
-    out->w = v_bar;
-    return true;
+    float t_bar = glm::dot(Q, Edge2) * inv_det;
+
+    if(!(t_bar < out->distanceMin)) {
+        return false;
+    }
+
+    out->distanceMin = t_bar;
+    out->CollisionPoint.x = u_bar;
+    out->CollisionPoint.y = v_bar;
+    return true; 
 }
 
-CollisionInfo intersectsMesh(const Mesh & mesh, const Ray & ray) 
+bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo * closestFace) 
 {
-    int idx = -1;
-    glm::vec4 collisionClosest(std::numeric_limits<float>::infinity(), 0, 0, 0);
-    for(size_t i = 0; i < mesh.Faces.size(); ++i)
-    {
+    bool changed = false;
+    for(size_t i = 0; i < mesh.Faces.size(); ++i) {
         const glm::vec3 PointA = mesh.Indicies[mesh.Faces[i].x].Pos;
         const glm::vec3 Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
         const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
-
-        glm::vec4 collisionInfo;
-        // Checks if intersect
-        if(intersectsTri(ray, PointA, Edge1, Edge2, &collisionInfo)) {
-            // If so, are we closer than before? if not, we can discard result.
-            // Move up to take advantage of boolean short circuting
-            if(collisionInfo.x < collisionClosest.x) {
-                collisionClosest = collisionInfo;
-                idx = i;
-            }
+        if(intersectsTri(ray, PointA, Edge1, Edge2, closestFace)) {
+            changed = true;
         }
     }
-
-    //return i, and collision info.
-    return std::make_pair(idx, collisionClosest);
+    return changed;
 }
 
 /*
 * Responsible for checking if a ray collides with a specific object.
 */
 
-bool intersectsOBJ(const Object & obj, const Ray & ray)
+bool intersectsOBJ(const Object & obj, const Ray & ray, CollisionInfo * closestFace)
 {
-    int closestObj = -1;
+    bool changed = false;
     for(size_t i = 0; i < obj.getObjInfo().size(); ++i) {
-        CollisionInfo nearestIntersect = intersectsMesh(obj.getObjInfo()[i], ray);
-        if(nearestIntersect.first != -1) {
-            //return true if we intersect with 
-            //any of our meshes (may contain multiple)
-            return true;
+        if(intersectsMesh(obj.getObjInfo()[i], ray, closestFace)) {
+            changed = true;
+            closestFace->meshIdx = static_cast<int>(i);
         }
     }
-    return false;
+
+    return changed;
 }
 
 /*
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
-Color checkCollisions(Ray & ray, const std::vector<Object> & objs) //need scene. 
+CollisionInfo checkCollisions(Ray & ray, const std::vector<Object> & objs) //need scene. 
 {
     float distance = 0;
-    for(size_t i = 0; i < objs.size();++i)
-    {
-        if(intersectsOBJ(objs[i], ray))
-        {
-            //for now, a constant color if we intersect with an object
-            return Color(255, 255, 255); 
+    CollisionInfo closestObj;
+    for (size_t i = 0; i < objs.size();++i) {
+        if (intersectsOBJ(objs[i], ray, &closestObj)) {
+            closestObj.objIdx = static_cast<int>(i);
         }
     }
-    return Color(0, 0, 0);
+    return closestObj;
+}
+
+Color eval(Ray & ray, const std::vector<Object> & objs, const int bounceCount) {
+    if (bounceCount <= 0) {
+        return Color(0, 0, 0);
+    }
+
+    CollisionInfo collide = checkCollisions(ray, objs);
+    if (collide.objIdx == -1) {
+        return Color(0, 0, 0);
+    }
+
+    Ray newRay;
+    newRay.Origin = ray.Origin + ray.Dir * collide.distanceMin;
+    //random direction
+
+    return eval(newRay, objs, bounceCount -1);
+    //return checkCollisions(ray, objs).second;
 }
 
 /*
@@ -138,7 +145,7 @@ Color traceRay(float u, float v, const std::vector<Object> & objs)
     ray.Dir = glm::vec3(u, v, 1.0f);
     normalizeRayDir(ray);
 
-    return checkCollisions(ray, objs);
+    return eval(ray, objs, BOUNCES);
 }
 
 
