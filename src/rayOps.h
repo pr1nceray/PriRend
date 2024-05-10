@@ -19,7 +19,7 @@ const int FOV_Y = 60;
 const int FOV_X = 90;
 
 const int SPP = 1;
-const int BOUNCES = 5;
+const int BOUNCES = 1;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -126,6 +126,8 @@ Color eval(Ray & ray, const std::vector<Object> & objs, const int bounceCount) {
         return Color(0, 0, 0);
     }
 
+    return objs[collide.objIdx].getMeshColor(collide);
+    
     Ray newRay;
     newRay.Origin = ray.Origin + ray.Dir * collide.distanceMin;
     //random direction

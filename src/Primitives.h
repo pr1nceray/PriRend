@@ -35,6 +35,9 @@ struct Ray {
     glm::vec3 Origin;
     glm::vec3 Dir;
 
+    Ray () {
+    }
+    
     Ray(const glm::vec3 & originIn, const glm::vec3 dirIn)  :
     Origin(originIn), Dir(dirIn) {
     }
