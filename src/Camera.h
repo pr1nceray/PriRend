@@ -19,7 +19,7 @@ class Camera {
     * Takes the objects in as arguments
     * Renders a scene given the objects in the Scene.
     */
-    void draw(const std::vector<Object> & obs) {
+    void draw(const std::vector<Mesh> & obs) {
         for (size_t y = 0; y < static_cast<size_t>(HEIGHT); ++y) {
             for (size_t x = 0; x < static_cast<size_t>(WIDTH); ++x) {
                 Color final = spawnRay(x, y, FOV_Y, FOV_X , obs);

@@ -29,7 +29,7 @@ class Object {
         if(glm::dot(normal, randVec) < 0) {
             randVec *= -1.0f;
         }
-        glm::vec3 newOrigin = origin + (randVec * .0001f); //avoid shadow acne
+        glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
         return Ray(newOrigin, randVec);
     }
 

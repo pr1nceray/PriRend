@@ -22,12 +22,11 @@ struct CollisionInfo {
     float distanceMin;
     int faceIdx;
     int meshIdx;
-    int objIdx;
 
     CollisionInfo() :
     CollisionPoint(glm::vec2(0, 0)),
     distanceMin(std::numeric_limits<float>::infinity()),
-    faceIdx(-1), meshIdx(-1), objIdx(-1) {
+    faceIdx(-1), meshIdx(-1) {
     }
 };
 
@@ -50,6 +49,13 @@ void normalizeRayDir(Ray & ray);
 */
 inline float generateRandomFloat() {
     return (static_cast<float>(std::rand() - RAND_MAX/2)/RAND_MAX);
+}
+
+/*
+* Generate uniformly random float on the range -1, 1
+*/
+inline float generateRandomFloat2() {
+    return 2.0f * generateRandomFloat();
 }
 
 inline uint8_t generateRandomNum() {
