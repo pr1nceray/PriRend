@@ -25,9 +25,11 @@ compile:
 	@echo "Compiling"
 	$(CC) $(TARGET) $(CPP_SOURCES) $(LDFLAGS) 
 
+# Debug Build
 debug:
 	@echo "Compiling Debug Build"
 	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(DEBUGFLAGS)
+
 #Style Check
 style:
 	@echo "Style Checking"

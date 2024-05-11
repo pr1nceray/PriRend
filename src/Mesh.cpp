@@ -1,14 +1,37 @@
 #include "Mesh.h"
 
 
-const Color & Mesh::getColor(size_t face_idx, float u, float v, float w) const {
-    return mat;
+Color Mesh::getColor(size_t face_idx, float u, float v, float w) const {
+
+    //Texture Coordinates for all of the above.
+    //W * a, U * B, C * v.
+    const glm::vec2 & PointA = Indicies[Faces[face_idx].x].TQ;
+    const glm::vec2 & PointB = Indicies[Faces[face_idx].y].TQ;
+    const glm::vec2 & PointC = Indicies[Faces[face_idx].z].TQ;
+
+    float x_average = w * PointA.x + u * PointB.x + v * PointC.x;
+    float y_average = w * PointA.y + u * PointB.y + v * PointC.y;
+    
+    return mat.getDiffuse();
+}
+
+
+const Color Mesh::getTextureAt(float x, float y) const {
+    return Color(1.0f, 1.0f, 1.0f); //mat;
 }
 
 const glm::vec3 & Mesh::getFaceNormal(size_t idx) const {
     return FaceNormals[idx];
 }
 
+void Mesh::setColor(float r, float g, float b) {
+    mat.setDiffuse(Color(r, g, b));
+}
+
+
+Material const & Mesh::getMaterial() const {
+    return mat;
+}
 
 void Mesh::generateNormals() {
     FaceNormals.resize(Faces.size());

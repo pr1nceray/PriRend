@@ -18,8 +18,8 @@ const int HEIGHT = 800;
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 1;
-const int BOUNCES = 1;
+const int SPP = 4;
+const int BOUNCES = 4;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -27,12 +27,11 @@ const float infinity = std::numeric_limits<float>::infinity();
 
 using evalInfo = std::pair<bool, CollisionInfo>;
 
-void normalizeRayDir(Ray & ray)
-{
-    ray.Dir = glm::normalize(ray.Dir);
+
+
+Color escape(const glm::vec3 & dir) {
+    return Color(dir.x * dir.x, dir.y * dir.y, dir.z * dir.z);
 }
-
-
 
 bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
                  const glm::vec3 & Edge1, const glm::vec3 & Edge2, CollisionInfo * out)
@@ -41,7 +40,7 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     float determinant = glm::dot(P, Edge1);
 
     //NON BACKFACE CULLING
-    if (abs(determinant) < epsil) {
+    if (determinant < epsil) {
         return false;
     }
 
@@ -60,7 +59,8 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
 
     float t_bar = glm::dot(Q, Edge2) * inv_det;
 
-    if(!(t_bar < out->distanceMin)) {
+
+    if(t_bar < 0 || !(t_bar < out->distanceMin)) {
         return false;
     }
 
@@ -79,6 +79,7 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo * closestF
         const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
         if(intersectsTri(ray, PointA, Edge1, Edge2, closestFace)) {
             changed = true;
+            closestFace->faceIdx = static_cast<int>(i);
         }
     }
     return changed;
@@ -126,14 +127,18 @@ Color eval(Ray & ray, const std::vector<Object> & objs, const int bounceCount) {
         return Color(0, 0, 0);
     }
 
-    return objs[collide.objIdx].getMeshColor(collide);
-    
-    Ray newRay;
-    newRay.Origin = ray.Origin + ray.Dir * collide.distanceMin;
-    //random direction
+    //return objs[collide.objIdx].getMeshColor(collide);
+    const Object & curObj = objs[collide.objIdx];
 
-    return eval(newRay, objs, bounceCount -1);
-    //return checkCollisions(ray, objs).second;
+    const Mesh & curMesh = curObj.getObjInfo()[collide.meshIdx];
+    const glm::vec3 & normal = curMesh.getFaceNormal(collide.faceIdx);
+    float lambertian = curMesh.getMaterial().getLambertian(ray, normal);
+    Color scatter = curObj.getMeshColor(collide);
+
+    //random direction
+    glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
+    Ray newRay = curObj.generateRandomVecOnFace(collide.meshIdx, collide.faceIdx, newOrigin);
+    return (scatter * lambertian) + (eval(newRay, objs, bounceCount -1) * .5f);
 }
 
 /*
@@ -158,12 +163,12 @@ Color traceRay(float u, float v, const std::vector<Object> & objs)
 Color spawnRay(size_t x, size_t y, size_t fov_y, size_t fov_x, const std::vector<Object> & objs)
 {   
     Color Final;
-    for(size_t i = 0; i < SPP; ++i)
+    for(size_t i = 0; i < static_cast<size_t>(SPP); ++i)
     {
         float u =  ASPECT_RATIO * (static_cast<float>(x) - (WIDTH/2.0))/WIDTH; //convert from x,y to -.5, .5
         float v = (static_cast<float>(y) - (HEIGHT/2.0))/HEIGHT; 
         
-        Final += (traceRay(u, v, objs) * (1.0f/SPP));
+        Final += traceRay(u, v, objs);
     }
-    return Final;
+    return Final/static_cast<float>(SPP);
 }

@@ -43,6 +43,8 @@ struct Ray {
     }
 };
 
+void normalizeRayDir(Ray & ray);
+
 /*
 * Generate uniformly random float on the range -.5, .5
 */

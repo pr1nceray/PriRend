@@ -11,7 +11,7 @@
 
 #include "./Color.h"
 #include "./Primitives.h"
-
+#include "./Materials.h"
 
 struct Mesh {
     // note : Contains duplicates and not in order of obj file.
@@ -23,28 +23,34 @@ struct Mesh {
     std::vector<glm::vec3> FaceNormalOrigins;  // potentially uneeded.
     std::vector<glm::vec3> EdgeMap;
 
-    Color mat;
-    uint32_t mat_index;
-    Mesh() : mat_index(0) {
-        uint8_t color = generateRandomNum();
-        mat = Color(color, color, color);
+    Material mat;
+
+    Mesh() {
+        mat.setDiffuse(Color(generateRandomFloat(), generateRandomFloat(), generateRandomFloat()));
     }
 
     explicit Mesh(const std::vector<Vertex> & Indicies_in) :
-    Indicies(Indicies_in), mat_index(0) {
-        uint8_t color = generateRandomNum();
-        mat = Color(color, color, color);
+    Indicies(Indicies_in) {
+        mat.setDiffuse(Color(generateRandomFloat(), generateRandomFloat(), generateRandomFloat()));
     }
 
     void generateNormals();
+
 
     /*
     * Getters
     */
 
+    Material const & getMaterial() const;
+
     const glm::vec3 & getFaceNormal(size_t idx) const;
 
-    const Color & getColor(size_t face_idx, float u, float v, float w) const;
+    Color getColor(size_t face_idx, float u, float v, float w) const;
+    void setColor(float r, float g, float b);
+
+    const Color getTextureAt(float x, float y) const;
+
+    
 };
 
 void printMeshVertexes(const Mesh & mesh);

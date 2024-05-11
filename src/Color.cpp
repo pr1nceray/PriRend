@@ -19,6 +19,11 @@ Color Color::operator-(const Color & rhs) {
   return Color(r - rhs.r, g - rhs.g, b - rhs.b);
 }
 
+Color Color::operator*(const Color & rhs) {
+    return Color(r * rhs.r, g * rhs.g, b * rhs.b);
+}
+
+
 void Color::operator+=(const Color & rhs) {
     r += rhs.r;
     g += rhs.g;

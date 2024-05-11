@@ -29,6 +29,12 @@ const glm::vec3 & Object::getCenter() const {
     return Center;
 }
 
+void Object::setMeshColors(float r, float g, float b) {
+    for(size_t i = 0; i < objInfo.size(); ++i) {
+        objInfo[i].setColor(r, g, b);
+    }
+}
+
 /*
 * Internal functions for setting up the object
 */
@@ -78,6 +84,6 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene) {
         }
 
         meshlcl.generateNormals();
-        printMesh(meshlcl);
+        //printMesh(meshlcl);
         return meshlcl;
 }
