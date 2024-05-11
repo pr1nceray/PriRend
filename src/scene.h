@@ -11,6 +11,10 @@ class Scene
     std::vector<Mesh> sceneMeshs;
     Camera cam;
     
+    /*
+    * Object info not needed, since it is mostly used
+    * For translation, rotation, etc and i havent gotten there yet.
+    */
     void prepareMesh() {
         for (size_t i = 0; i < Scene_Objects.size(); ++i) {
             const Object & curObj = Scene_Objects[i];

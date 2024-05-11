@@ -23,16 +23,6 @@ class Object {
         return objInfo[meshIdx].getFaceNormal(faceIdx);
     }
 
-    Ray generateRandomVecOnFace(const size_t meshIdx, const size_t faceIdx, const glm::vec3 & origin) const {
-        glm::vec3 randVec = generateRandomVec();
-        glm::vec3 normal = getFaceNormal(meshIdx, faceIdx);
-        if(glm::dot(normal, randVec) < 0) {
-            randVec *= -1.0f;
-        }
-        glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
-        return Ray(newOrigin, randVec);
-    }
-
 
     void setMeshColors(float r, float g, float b);
     

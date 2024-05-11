@@ -3,7 +3,6 @@
 #include <utility>
 #include <math.h>
 #include <limits.h>
-
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
@@ -18,8 +17,8 @@ const int HEIGHT = 400;
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 4;
-const int BOUNCES = 16;
+const int SPP = 16;
+const int BOUNCES = 10;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -39,7 +38,7 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     glm::vec3 P = glm::cross(ray.Dir, Edge2);
     float determinant = glm::dot(P, Edge1);
 
-    //NON BACKFACE CULLING
+    //BACKFACE CULLING
     if (determinant < epsil) {
         return false;
     }
@@ -56,10 +55,7 @@ bool intersectsTri(const Ray & ray, const glm::vec3 & PointA,
     if (v_bar < 0 ||  (v_bar + u_bar) > 1) {
         return false;
     }
-
     float t_bar = glm::dot(Q, Edge2) * inv_det;
-
-
     if(t_bar < 0 || !(t_bar < out->distanceMin)) {
         return false;
     }
@@ -112,10 +108,6 @@ Color eval(Ray & ray, const std::vector<Mesh> & objs, const int bounceCount) {
         return Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
     }
 
-    return Color(255, 255, 255);
-    //return objs[collide.objIdx].getMeshColor(collide);
-    //const Object & curObj = objs[collide.objIdx];
-
     const Mesh & curMesh = objs[collide.meshIdx]; // curObj.getObjInfo()[collide.meshIdx];
     const glm::vec3 & normal = curMesh.getFaceNormal(collide.faceIdx);
     float lambertian = curMesh.getMaterial().getLambertian(ray, normal);
@@ -123,8 +115,8 @@ Color eval(Ray & ray, const std::vector<Mesh> & objs, const int bounceCount) {
 
     //random direction
     glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-    //Ray newRay = curObj.generateRandomVecOnFace(collide.meshIdx, collide.faceIdx, newOrigin);
-    //return  (eval(newRay, objs, bounceCount -1) * .5f);
+    Ray newRay = curMesh.generateLambertianVecOnFace(collide.faceIdx, newOrigin);
+    return  (eval(newRay, objs, bounceCount -1) * .5f);
 }
 
 /*
@@ -157,10 +149,10 @@ Color spawnRay(size_t x, size_t y, size_t fov_y, size_t fov_x, const std::vector
         float v = (static_cast<float>(y) - (HEIGHT/2.0))/HEIGHT; 
         
         //ANTI ALIASING!
-        //float varU = generateRandomFloat() * delta_u;
-        //float varV = generateRandomFloat() * delta_v;
-        //u += varU;
-        //u += varV;
+        float varU = generateRandomFloat() * delta_u;
+        float varV = generateRandomFloat() * delta_v;
+        u += varU;
+        u += varV;
 
         Final += traceRay(u, v, objs);
     }

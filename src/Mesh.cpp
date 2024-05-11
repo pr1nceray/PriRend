@@ -1,6 +1,24 @@
 #include "Mesh.h"
 
 
+Ray Mesh::generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
+    glm::vec3 randVec = generateRandomVec();
+    glm::vec3 normal = getFaceNormal(faceIdx);
+    randVec *= glm::dot(randVec, normal) < 0?-1:1;
+
+    glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
+    return Ray(newOrigin, randVec);
+}
+
+
+Ray Mesh::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
+        glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVec();
+        glm::vec3 newOrigin = origin + (newDir * .001f); //avoid shadow acne
+        return Ray(newOrigin, newDir);
+    }
+
+
+
 Color Mesh::getColor(size_t face_idx, float u, float v, float w) const {
 
     //Texture Coordinates for all of the above.

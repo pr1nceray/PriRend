@@ -18,9 +18,7 @@ struct Mesh {
     // need to find a way to trim down on vertexes maybe.
     std::vector<Vertex> Indicies;
     std::vector<glm::vec3> Faces;
-
     std::vector<glm::vec3> FaceNormals;
-    std::vector<glm::vec3> FaceNormalOrigins;  // potentially uneeded.
     std::vector<glm::vec3> EdgeMap;
 
     Material mat;
@@ -50,6 +48,8 @@ struct Mesh {
 
     const Color getTextureAt(float x, float y) const;
 
+    Ray generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
+    Ray generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
     
 };
 
