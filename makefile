@@ -1,7 +1,7 @@
 TARGET  :=  -o Pri-Render.exe
 TARGETDEBUG := -o Pri-Render-Debug.exe
 
-CC      := g++
+CC      := nvcc
 
 SOURCE_DIR := src
 CUH_SOURCES := $(wildcard $(addsuffix /*.cuh, $(SOURCE_DIR)))
@@ -23,7 +23,7 @@ all: compile
 # Compile
 compile:
 	@echo "Compiling"
-	$(CC) $(TARGET) $(CPP_SOURCES) $(LDFLAGS) 
+	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS) 
 
 # Debug Build
 debug:

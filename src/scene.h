@@ -2,7 +2,7 @@
 #include "Object.h"
 #include "Camera.h"
 #include <vector>
-//#include "Renderer.h>
+#include "./GpuInfo.h"
 
 class Scene
 {
@@ -15,19 +15,20 @@ class Scene
     * Object info not needed, since it is mostly used
     * For translation, rotation, etc and i havent gotten there yet.
     */
-    void prepareMesh() {
+    GpuInfo prepareMesh() {
         for (size_t i = 0; i < Scene_Objects.size(); ++i) {
             const Object & curObj = Scene_Objects[i];
             for (size_t j = 0; j < curObj.getObjInfo().size(); j++) {
                 sceneMeshs.push_back(curObj.getObjInfo()[j]);
             }
         }
+        return GpuInfo(sceneMeshs);
     }
     
     public:
 
     void render() {
-        prepareMesh();
+        GpuInfo gpu = prepareMesh();
         cam.draw(sceneMeshs);
     }
 

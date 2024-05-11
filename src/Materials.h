@@ -14,6 +14,9 @@ class Material {
     DiffuseBasic(Color(.5f, .5f, .5f)), materialOpt(0) {
     }
 
+    /*
+    * Class functions
+    */
     float getLambertian(const Ray & ray, const glm::vec3 & normal) const;
     const Color bsdf(const Ray & rayIn, const Ray & rayOut, const glm::vec3 & normal) const;
     const Color brdf(const Ray & rayIn, const Ray & rayOut) const;
