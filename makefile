@@ -14,9 +14,11 @@ CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
 ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
 CFLAGS  :=  -Xcompiler -Wall -Xcompiler -Wextra -Xcompiler -Wshadow -Xcompiler -Wwrite-strings 
-LDFLAGS := -lassimp 
+LDFLAGS := -lassimp -lcudadevrt -lcurand -rdc true
+
 SPEEDFLAGS := -std=c++20 -O3 
-DEBUGFLAGS := -g -lassimp
+DEBUGFLAGS := -g
+
 WARNING := -diag-suppress 20012
 
 STYLE_CHECKER := cpplint
@@ -32,7 +34,7 @@ compile:
 # Debug Build
 debug:
 	@echo "Compiling Debug Build"
-	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(CU_SOURCES) $(DEBUGFLAGS)
+	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS) $(DEBUGFLAGS)
 
 #Style Check
 style:

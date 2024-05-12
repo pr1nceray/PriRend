@@ -1,7 +1,7 @@
 #include "./GpuInfo.cuh"
 
-__device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
-    glm::vec3 randVec = generateRandomVecD();
+__device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
+    glm::vec3 randVec = generateRandomVecD(state);
     glm::vec3 normal = getFaceNormal(faceIdx);
     randVec *= glm::dot(randVec, normal) < 0?-1:1;
 
@@ -9,8 +9,8 @@ __device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, const glm:
     return Ray(newOrigin, randVec);
 }
 
-__device__ Ray MeshGpu::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
-    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD();
+__device__ Ray MeshGpu::generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
+    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD(state);
     glm::vec3 newOrigin = origin + (newDir * .001f); // avoid shadow acne
     return Ray(newOrigin, newDir);
 }
@@ -78,8 +78,13 @@ void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
     //copy over all the info
     err = cudaMemcpy(meshDev, meshHost, sizeOfArray, cudaMemcpyHostToDevice);
     handleCudaError(err);
+    delete[] meshHost; //no longer needed, free resources.
 }
 
+ __host__ void GpuInfo::freeResources() {
+    cudaFree(infoBuffer);
+    cudaFree(meshDev);
+ }
 
 void GpuInfo::copyNormalBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     cudaError_t err;

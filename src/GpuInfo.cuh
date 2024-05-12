@@ -1,12 +1,13 @@
 #pragma once
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include <curand.h>
 
 #include <vector>
 #include <string>
 
 #include <glm/vec3.hpp>
-#include "./Mesh.h"
+#include "./Mesh.cuh"
 
 /*
 * Move to seperate class
@@ -20,8 +21,8 @@ struct MeshGpu {
     size_t faceSize;
     size_t vertexSize;
 
-    __device__ Ray generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
-    __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
+    __device__ Ray generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
+    __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
 
     __device__ Material const & getMaterial() const;
     __device__ const glm::vec3 & getFaceNormal(size_t idx) const;
@@ -34,10 +35,12 @@ struct GpuInfo {
 
     GpuInfo() = default; 
 
+
     __host__ GpuInfo(const std::vector<Mesh> & meshIn) {
         copyIntoDevice(meshIn);
     }
 
+    __host__ void freeResources();
     private:
 
     void copyNormalBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
