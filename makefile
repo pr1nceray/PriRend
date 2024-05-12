@@ -11,8 +11,8 @@ CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
 
 ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
-#CFLAGS  := -std=c++20 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings -O3
-LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system -lassimp -lGL
+CFLAGS  := -std=c++20 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings -O3
+LDFLAGS := -lassimp 
 DEBUGFLAGS := -g -lassimp
 
 STYLE_CHECKER := cpplint
@@ -23,12 +23,12 @@ all: compile
 # Compile
 compile:
 	@echo "Compiling"
-	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS) 
+	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS)
 
 # Debug Build
 debug:
 	@echo "Compiling Debug Build"
-	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(DEBUGFLAGS)
+	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(CU_SOURCES) $(DEBUGFLAGS)
 
 #Style Check
 style:

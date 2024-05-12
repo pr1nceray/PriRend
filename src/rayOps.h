@@ -70,9 +70,9 @@ bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo * closestF
 {
     bool changed = false;
     for(size_t i = 0; i < mesh.Faces.size(); ++i) {
-        const glm::vec3 PointA = mesh.Indicies[mesh.Faces[i].x].Pos;
-        const glm::vec3 Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
-        const glm::vec3 Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
+        const glm::vec3 & PointA = mesh.Indicies[mesh.Faces[i].x].Pos;
+        const glm::vec3 & Edge1 = mesh.EdgeMap[(i * 2)]; //edge one
+        const glm::vec3 & Edge2 = mesh.EdgeMap[(i * 2) + 1]; //edge two
         if(intersectsTri(ray, PointA, Edge1, Edge2, closestFace)) {
             changed = true;
             closestFace->faceIdx = static_cast<int>(i);

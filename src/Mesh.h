@@ -59,10 +59,4 @@ struct Mesh {
 * Functions for debug output.
 */
 
-void printMeshVertexes(const Mesh & mesh);
-
-void printMeshFaces(const Mesh & mesh);
-
-void printMeshNormals(const Mesh & mesh);
-
 void printMesh(const Mesh & mesh);

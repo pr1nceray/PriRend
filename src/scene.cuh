@@ -1,8 +1,11 @@
 #pragma once
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
+#include <vector>
 #include "Object.h"
 #include "Camera.h"
-#include <vector>
-#include "./GpuInfo.h"
+#include "./GpuInfo.cuh"
 
 class Scene
 {
@@ -22,14 +25,16 @@ class Scene
                 sceneMeshs.push_back(curObj.getObjInfo()[j]);
             }
         }
-        return GpuInfo(sceneMeshs);
+        GpuInfo temp = GpuInfo(sceneMeshs);
+        printMeshInfo<<<1,1,1>>>(temp);
+        return temp;
     }
     
     public:
 
     void render() {
         GpuInfo gpu = prepareMesh();
-        cam.draw(sceneMeshs);
+        //cam.draw(sceneMeshs);
     }
 
     Object & add_object(std::string obj_name) {

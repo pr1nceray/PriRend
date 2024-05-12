@@ -120,11 +120,11 @@ void printMeshNormals(const Mesh & mesh) {
 }
 
 void printMesh(const Mesh & mesh) {
-    printMeshVertexes(mesh);
-    std::cout << "\n\n\n";
     printMeshFaces(mesh);
     std::cout << "\n\n\n";
     printMeshNormals(mesh);
+    std::cout << "\n\n\n";
+    printMeshVertexes(mesh);
 }
 
 
