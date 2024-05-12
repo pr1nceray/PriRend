@@ -3,6 +3,9 @@
 #include <utility>
 #include <math.h>
 #include <limits.h>
+#include <curand.h>
+#include <curand_kernel.h>
+
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>

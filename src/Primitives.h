@@ -2,12 +2,12 @@
 #include <time.h>
 #include <stdlib.h>
 #include <curand.h>
+#include <curand_kernel.h>
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-
 #include <limits>
-
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

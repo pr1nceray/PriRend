@@ -115,15 +115,26 @@ __device__ Color clampColor(Color final) {
     return Color(finalR, finalG, finalB);
 }
 
+
+
+/*
+
+TODO : get the seed as input from camera (should use a rand() call there)
+TODO2 : pass rand state in to traceRay/eval, 
+TODO3 : use CUrandState in generateRandom()
+TODO4 : debug. 
+
+*/
+
+
 /*
 * spawnRay is responsible for creating parameters and calling traceRay
 * Averages the findings of the samples (controlled by SPP), and returns a color.
 */
 __global__ void spawnRay(GpuInfo info, uint8_t * colorArr) {   
-    Color Final;
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
-
+    const int one_d_idx = (idy * WIDTH * CHANNEL) + idx;
 
     if(idx > WIDTH || idy > WIDTH) {
         return;
@@ -131,6 +142,10 @@ __global__ void spawnRay(GpuInfo info, uint8_t * colorArr) {
 
     const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
     const float delta_v = 1.0f/(HEIGHT);
+    curandState randState;
+
+    curand_init(3, one_d_idx ,0, &randState);
+    Color Final;
 
     for (size_t i = 0; i < static_cast<size_t>(SPP); ++i) {
         float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
@@ -147,8 +162,6 @@ __global__ void spawnRay(GpuInfo info, uint8_t * colorArr) {
 
     Final /= static_cast<float>(SPP);
     Final = clampColor(Final);
-
-    const int one_d_idx = (idy * WIDTH * CHANNEL) + idx;
 
     colorArr[one_d_idx] = Final.r;
     colorArr[one_d_idx + 1] = Final.g;
