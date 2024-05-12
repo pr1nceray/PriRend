@@ -15,10 +15,16 @@
 struct MeshGpu {
     glm::vec3 * normalBuff;
     glm::vec3 * edgeBuff;
-    glm::vec3 * faceBuff;
+    glm::ivec3 * faceBuff;
     Vertex * vertexBuffer;
     size_t faceSize;
     size_t vertexSize;
+
+    __device__ Ray generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
+    __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const;
+
+    __device__ Material const & getMaterial() const;
+    __device__ const glm::vec3 & getFaceNormal(size_t idx) const;
 };
 
 struct GpuInfo {
@@ -49,12 +55,12 @@ struct GpuInfo {
     }
 
 
-    inline void handleCudaError(cudaError err) {
-        if (err != cudaSuccess) {
-            std::cout << err << "\n";
-            throw std::runtime_error(" Issue with cuda; Error code : " + err);
-        }
-    }
 };  
 
+inline void handleCudaError(cudaError err) {
+    if (err != cudaSuccess) {
+        std::cerr << err << "\n";
+        throw std::runtime_error(" Issue with cuda; Error code : " + err);
+    }
+}
 __global__ void printMeshInfo(GpuInfo inf);

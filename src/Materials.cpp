@@ -9,7 +9,7 @@ float Material::getLambertian(const Ray & ray, const glm::vec3 & normal) const {
 glm::vec3 Material::generateNewDir(const Ray & rayIn, const glm::vec3 & normal) const {
     switch (materialOpt) {
         case (0) : {
-            glm::vec3 randVec = generateRandomVec();
+            glm::vec3 randVec = generateRandomVecH();
             if(glm::dot(randVec, normal) < 0) {
                 randVec *= -1.0f;
             }

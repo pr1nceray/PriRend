@@ -17,19 +17,19 @@ struct Mesh {
     // note : Contains duplicates and not in order of obj file.
     // need to find a way to trim down on vertexes maybe.
     std::vector<Vertex> Indicies;
-    std::vector<glm::vec3> Faces; //potentially uneeded since only used for normal creation
+    std::vector<glm::ivec3> Faces; //potentially uneeded since only used for normal creation
     std::vector<glm::vec3> FaceNormals;
     std::vector<glm::vec3> EdgeMap;
 
     Material mat;
 
     Mesh() {
-        mat.setDiffuse(Color(generateRandomFloat(), generateRandomFloat(), generateRandomFloat()));
+        mat.setDiffuse(Color(generateRandomFloatH(), generateRandomFloatH(), generateRandomFloatH()));
     }
 
     explicit Mesh(const std::vector<Vertex> & Indicies_in) :
     Indicies(Indicies_in) {
-        mat.setDiffuse(Color(generateRandomFloat(), generateRandomFloat(), generateRandomFloat()));
+        mat.setDiffuse(Color(generateRandomFloatH(), generateRandomFloatH(), generateRandomFloatH()));
     }
 
 

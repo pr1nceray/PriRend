@@ -3,8 +3,8 @@
 #include "device_launch_parameters.h"
 
 #include <vector>
-#include "Object.h"
-#include "Camera.h"
+#include "./Object.h"
+#include "./Camera.cuh"
 #include "./GpuInfo.cuh"
 
 class Scene
@@ -34,7 +34,7 @@ class Scene
 
     void render() {
         GpuInfo gpu = prepareMesh();
-        //cam.draw(sceneMeshs);
+        cam.draw(gpu);
     }
 
     Object & add_object(std::string obj_name) {

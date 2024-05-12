@@ -9,11 +9,15 @@ CU_SOURCES := $(wildcard $(addsuffix /*.cu, $(SOURCE_DIR)))
 CPP_SOURCES := $(wildcard $(addsuffix /*.cpp, $(SOURCE_DIR)))
 CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
 
+
+
 ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
-CFLAGS  := -std=c++20 -pedantic -Wall -Wextra -Wshadow -Wwrite-strings -O3
+CFLAGS  :=  -Xcompiler -Wall -Xcompiler -Wextra -Xcompiler -Wshadow -Xcompiler -Wwrite-strings 
 LDFLAGS := -lassimp 
+SPEEDFLAGS := -std=c++20 -O3 
 DEBUGFLAGS := -g -lassimp
+WARNING := -diag-suppress 20012
 
 STYLE_CHECKER := cpplint
 STYLE_HEADERS := --headers=cuh,h,hpp
@@ -23,7 +27,7 @@ all: compile
 # Compile
 compile:
 	@echo "Compiling"
-	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS)
+	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(SPEEDFLAGS)
 
 # Debug Build
 debug:

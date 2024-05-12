@@ -1,6 +1,10 @@
 #pragma once
 #include <time.h>
 #include <stdlib.h>
+#include <curand.h>
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 
 #include <limits>
 
@@ -23,9 +27,9 @@ struct CollisionInfo {
     int faceIdx;
     int meshIdx;
 
-    CollisionInfo() :
+    __host__ __device__ CollisionInfo() :
     CollisionPoint(glm::vec2(0, 0)),
-    distanceMin(std::numeric_limits<float>::infinity()),
+    distanceMin(__FLT_MAX__),
     faceIdx(-1), meshIdx(-1) {
     }
 };
@@ -34,37 +38,44 @@ struct Ray {
     glm::vec3 Origin;
     glm::vec3 Dir;
 
-    Ray () {
+    __host__ __device__ Ray () {
     }
     
-    Ray(const glm::vec3 & originIn, const glm::vec3 dirIn)  :
+    __host__ __device__ Ray(const glm::vec3 & originIn, const glm::vec3 dirIn)  :
     Origin(originIn), Dir(dirIn) {
     }
 };
 
-void normalizeRayDir(Ray & ray);
+__host__ __device__ void normalizeRayDir(Ray & ray);
 
 /*
 * Generate uniformly random float on the range -.5, .5
 */
-inline float generateRandomFloat() {
+__host__ float generateRandomFloatH() {
     return (static_cast<float>(std::rand() - RAND_MAX/2)/RAND_MAX);
+}
+__device__ float generateRandomFloatD(curandStatus * state) {
 }
 
 /*
 * Generate uniformly random float on the range -1, 1
 */
-inline float generateRandomFloat2() {
-    return 2.0f * generateRandomFloat();
-}
 
-inline uint8_t generateRandomNum() {
+__host__ uint8_t generateRandomNumH() {
+    return static_cast<uint8_t>(rand() % 255);
+}
+__device__ uint8_t generateRandomNumD() {
     return static_cast<uint8_t>(rand() % 255);
 }
 /*
 * Generates a random normalized vector
 */
-inline glm::vec3 generateRandomVec() {
+__host__ glm::vec3 generateRandomVecH() {
     return glm::normalize(glm::vec3(
-        generateRandomFloat(), generateRandomFloat(), generateRandomFloat()));
+        generateRandomFloatH(), generateRandomFloatH(), generateRandomFloatH()));
+}
+
+__device__ glm::vec3 generateRandomVecD() {
+    return glm::normalize(glm::vec3(
+        generateRandomFloatD(), generateRandomFloatD(), generateRandomFloatD()));
 }

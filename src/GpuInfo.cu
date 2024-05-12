@@ -1,5 +1,34 @@
 #include "./GpuInfo.cuh"
 
+__device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
+    glm::vec3 randVec = generateRandomVecD();
+    glm::vec3 normal = getFaceNormal(faceIdx);
+    randVec *= glm::dot(randVec, normal) < 0?-1:1;
+
+    glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
+    return Ray(newOrigin, randVec);
+}
+
+__device__ Ray MeshGpu::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
+    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD();
+    glm::vec3 newOrigin = origin + (newDir * .001f); // avoid shadow acne
+    return Ray(newOrigin, newDir);
+}
+
+
+/*
+* TODO : Materials
+*/
+/*
+__device__ Material const & MeshGpu::getMaterial() const {
+
+}
+*/
+
+__device__ const glm::vec3 & MeshGpu::getFaceNormal(size_t idx) const {
+    return normalBuff[idx];
+}
+
 size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
     size_t total = 0;
     for (size_t i = 0; i < meshIn.size(); ++i) {
@@ -7,9 +36,8 @@ size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
          total += sizeof(glm::vec3) * meshIn[i].FaceNormals.size();
         // edgemap
         total += sizeof(glm::vec3) * meshIn[i].EdgeMap.size();
-            
         //faces
-        total += sizeof(glm::vec3) * meshIn[i].Faces.size();
+        total += sizeof(glm::ivec3) * meshIn[i].Faces.size();
         // V buffer.
         total += sizeof(Vertex) * meshIn[i].Indicies.size(); 
     }
@@ -80,11 +108,11 @@ void GpuInfo::copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, Mes
 void GpuInfo::copyFaceBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     cudaError_t err;
     for (size_t i = 0; i < meshIn.size(); ++i) { 
-        size_t sizeOfFaces = sizeof(glm::vec3) * meshIn[i].Faces.size();
+        size_t sizeOfFaces = sizeof(glm::ivec3) * meshIn[i].Faces.size();
         err = cudaMemcpy(start, meshIn[i].Faces.data(), sizeOfFaces, cudaMemcpyHostToDevice);
         handleCudaError(err);
-        meshHost[i].faceBuff = static_cast<glm::vec3 *>(start);
-        start = (void *)(static_cast<glm::vec3 *>(start) + meshIn[i].Faces.size());
+        meshHost[i].faceBuff = static_cast<glm::ivec3 *>(start);
+        start = (void *)(static_cast<glm::ivec3 *>(start) + meshIn[i].Faces.size());
     }
 }
 
@@ -111,7 +139,7 @@ void GpuInfo::setLength( const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
 __device__ void printMeshFaces(MeshGpu * mesh) {
     printf("Printing Faces\n");
     for (size_t j = 0; j < mesh->faceSize; ++j) {
-        printf("%.6f  %.6f  %.6f \n",
+        printf("%d  %d  %d \n",
         mesh->faceBuff[j].x, 
         mesh->faceBuff[j].y, 
         mesh->faceBuff[j].z);
@@ -157,7 +185,7 @@ __device__ void printMeshVertexs(MeshGpu * mesh) {
 
 __global__ void printMeshInfo(GpuInfo inf) {
     for (size_t i = 0; i < inf.meshLen; ++i) {
-        printf("Printing for mesh %d.\n", i);
+        printf("Printing for mesh %d.\n", static_cast<int>(i));
 
         MeshGpu cur = inf.meshDev[i];
         printMeshFaces(&cur);

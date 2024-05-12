@@ -73,7 +73,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene) {
 
         for (size_t i = 0; i < mesh->mNumFaces; ++i) {
             aiFace face_add = mesh->mFaces[i];
-            glm::vec3 index_for_face;
+            glm::ivec3 index_for_face;
 
             // Gaurenteed <= 3 vertexes due to assimp option above.
             index_for_face.x = face_add.mIndices[0];

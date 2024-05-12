@@ -18,10 +18,6 @@ void Mesh::generateNormals() {
         const glm::vec3 ray_one = PointB - PointA;
         const glm::vec3 ray_two = PointC - PointA;
 
-        float x_sum = PointA.x + PointB.x + PointC.x;
-        float y_sum = PointA.y + PointB.y + PointC.y;
-        float z_sum = PointA.z + PointB.z + PointC.z;
-
         FaceNormals[i] = glm::normalize(glm::cross(ray_one, ray_two));
 
         EdgeMap[i * 2] = ray_one;
@@ -31,7 +27,7 @@ void Mesh::generateNormals() {
 
 
 Ray Mesh::generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
-    glm::vec3 randVec = generateRandomVec();
+    glm::vec3 randVec = generateRandomVecH();
     glm::vec3 normal = getFaceNormal(faceIdx);
     randVec *= glm::dot(randVec, normal) < 0?-1:1;
 
@@ -41,7 +37,7 @@ Ray Mesh::generateRandomVecOnFace(const size_t faceIdx, const glm::vec3 & origin
 
 
 Ray Mesh::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & origin) const {
-    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVec();
+    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecH();
     glm::vec3 newOrigin = origin + (newDir * .001f); // avoid shadow acne
     return Ray(newOrigin, newDir);
 }

@@ -1,6 +1,6 @@
 #include "Primitives.h"
 
-void normalizeRayDir(Ray & ray) {
+ __host__ __device__ void normalizeRayDir(Ray & ray) {
     ray.Dir = glm::normalize(ray.Dir);
 }
 
