@@ -75,9 +75,9 @@ __device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info) 
 __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount) {
     Color final = Color(0.0f, 0.0f, 0.0f);
     CollisionInfo collide;
-    float factor = 1.0f;
     const MeshGpu * curMesh;
     const glm::vec3 * normal;
+    float factor = 1.0f;
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray, info);
         if (collide.meshIdx == -1) {
@@ -91,9 +91,9 @@ __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const r
 
         // random direction
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-        ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
-        factor *= .5f; //factor gets reduced
+        ray = curMesh->generateReflectiveVecOnFace(collide.faceIdx, ray.Dir, newOrigin);
         collide.meshIdx = -1;
+        factor *= .5f;
     }
     
     return Color(0.0f, 0.0f, 0.0f); //bounce count exceeded
@@ -167,8 +167,14 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
         Final += traceRay(u, v, &randState, &info);
     }
 
-    Final *= 255.0f/static_cast<float>(SPP);
+    /*
+    * Seperate so that we can gamma correct easier
+    */
+    Final /= static_cast<float>(SPP);
+    gammaCorrect(&Final);
+    Final *= 255.0f;
     Final = clampColor(Final);
+
 
     colorArr[one_d_idx] = Final.r;
     colorArr[one_d_idx + 1] = Final.g;
@@ -196,39 +202,47 @@ __global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr) {
 
     float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
     float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
-        
-    // ANTI ALIASING!
+
     u += generateRandomFloatD(&randState) * delta_u;
     u += generateRandomFloatD(&randState) * delta_v;
 
     Color Final = traceRay(u, v, &randState, &info);
 
-    Final *= 255.0f/static_cast<float>(SPP);
+    Final /= static_cast<float>(SPP);
 
     colorArr[one_d_idx] += Final.r;
     colorArr[one_d_idx + 1] += Final.g;
     colorArr[one_d_idx + 2] += Final.b;
 }
 
-__device__ void convertSingle(const float * num, uint8_t *out) {
-    *out = *num>255?255:static_cast<uint8_t>(*num);
+/*
+* Convert the color array of floats to uint8_t.
+* Applies sqrt to gamma correct.
+*/
+__device__ void converColorProgressive(const float * num, uint8_t *out) {
+    out[0] = num[0]>1?255:static_cast<uint8_t>(255 * sqrt(num[0]));
+    out[1] = num[1]>1?255:static_cast<uint8_t>(255 * sqrt(num[1]));
+    out[2] = num[2]>1?255:static_cast<uint8_t>(255 * sqrt(num[2]));
 }
 
 /*
 * Convert the float array to a uint8_t array
 */
-__global__ void convertArr(const float * colorArr, uint8_t * out) {
+__global__ void convertArr(float * colorArr, uint8_t * out) {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
     const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
+    
     if(idx >= WIDTH || idy >= HEIGHT) {
         return;
     } 
-    convertSingle(&colorArr[one_d_idx], &out[one_d_idx]);
-    convertSingle(&colorArr[one_d_idx + 1], &out[one_d_idx + 1]);
-    convertSingle(&colorArr[one_d_idx + 2], &out[one_d_idx + 2]);
+
+    converColorProgressive(&colorArr[one_d_idx], &out[one_d_idx]);
 }
 
+/*
+* Wipe array to prepare for writing
+*/
 __global__ void wipeArr(float * colorArr) {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -240,3 +254,13 @@ __global__ void wipeArr(float * colorArr) {
     colorArr[one_d_idx + 1] = 0;
     colorArr[one_d_idx + 2] = 0;
 }
+
+/*
+* Correct gamma
+*/
+__device__ void gammaCorrect(Color * colorPtr) {
+    colorPtr->r = sqrtf(colorPtr->r);
+    colorPtr->g = sqrtf(colorPtr->g);
+    colorPtr->b = sqrtf(colorPtr->b);
+}
+

@@ -46,3 +46,4 @@ class Material {
     float * Specular;
 
 };
+

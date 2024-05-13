@@ -20,16 +20,13 @@ struct Mesh {
     std::vector<glm::ivec3> Faces; //potentially uneeded since only used for normal creation
     std::vector<glm::vec3> FaceNormals;
     std::vector<glm::vec3> EdgeMap;
+    std::vector<size_t> mats; //material map
 
-    Material mat;
-
-    Mesh() {
-        mat.setDiffuse(Color(generateRandomFloatH(), generateRandomFloatH(), generateRandomFloatH()));
-    }
+    explicit Mesh() = default;
 
     explicit Mesh(const std::vector<Vertex> & Indicies_in) :
-    Indicies(Indicies_in) {
-        mat.setDiffuse(Color(generateRandomFloatH(), generateRandomFloatH(), generateRandomFloatH()));
+    Indicies(Indicies_in) { 
+
     }
 
 

@@ -13,6 +13,8 @@
 * Move to seperate class
 */
 
+__device__ GpuInfo sceneInfo;
+
 struct MeshGpu {
     glm::vec3 * normalBuff;
     glm::vec3 * edgeBuff;
@@ -23,10 +25,12 @@ struct MeshGpu {
 
     __device__ Ray generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
     __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
+    __device__ Ray generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir, const glm::vec3 & origin) const;
 
     __device__ Material const & getMaterial() const;
     __device__ const glm::vec3 & getFaceNormal(size_t idx) const;
 };
+
 
 struct GpuInfo {
     MeshGpu * meshDev; //contains array of pointers that point to locations in infoBuffer
@@ -43,6 +47,9 @@ struct GpuInfo {
     __host__ void freeResources();
     private:
 
+
+    template<typename T>
+    void copyBuff(void * & start, const std::vector<T> * data, T * & write);
     void copyNormalBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyFaceBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
@@ -50,12 +57,8 @@ struct GpuInfo {
     void setLength( const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
 
     void copyIntoDevice(const std::vector<Mesh> & meshIn);
-
     size_t sumMeshSizes(const std::vector<Mesh> & meshIn) const;
-
-    inline size_t sumMeshArr(const std::vector<Mesh> & meshIn) const {
-        return sizeof(MeshGpu) * meshIn.size();
-    }
+    size_t sumMeshArr(const std::vector<Mesh> & meshIn) const; 
 
 
 };  

@@ -22,8 +22,8 @@ const int CHANNEL = 3;
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 512;
-const int BOUNCES = 32;
+const int SPP = 128;
+const int BOUNCES = 16;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -45,18 +45,17 @@ __device__ bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo
 /*
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
-__device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info);
-
+__device__ CollisionInfo checkCollisions(const Ray & ray);
 
 /*
 * Itertative version of eval bcuz cuda sucks at recursion.
 */
-__device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount);
+__device__ Color evalIter(Ray & ray, curandState * const randState, const int bounceCount);
 
 /*
 * eval is the recursive portion that checks for collisions, and applies bsdf
 */
-__device__ Color eval(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount);
+__device__ Color eval(Ray & ray, curandState * const randState, const int bounceCount);
 
 /*
 * TraceRay is responsible for creating the ray and giving it a direction based on u,v.
@@ -68,26 +67,27 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 * spawnRay is responsible for creating parameters and calling traceRay
 * Averages the findings of the samples (controlled by SPP), and returns a color.
 */
-__global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr);
+__global__ void spawnRay(int seed, uint8_t * colorArr);
 
 /*
 * Achieves the exact same as spawnRay, but does so progressively so that we can write to the image
 * Slightly slower due to the need to need to run to cpu every time we want to update the image.
 */
-__global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr);
-
+__global__ void spawnRayProgressive(int seed, float * colorArr);
 
 /*
 * Convert a float to a color
 */
-__device__ void convertSingle(const float * num, uint8_t *out);
+__device__ void converColorProgressive(const float * num, uint8_t *out);
 
 /*
 * Convert the float array to a uint8_t array
 */
-__global__ void convertArr(const float * colorArr, uint8_t * out);
+__global__ void convertArr(float * colorArr, uint8_t * out);
 
 /*
 * Clear array in preparation for writing
 */
 __global__ void wipeArr(float * colorArr);
+
+__device__ void gammaCorrect(Color * colorArr);

@@ -76,9 +76,7 @@ class Camera {
             handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
 
             Write_Image();
-            
         }
-
     }
 
     private:
