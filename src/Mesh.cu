@@ -107,8 +107,6 @@ void printMeshNormals(const Mesh & mesh) {
     std::cout << "Printing Normals HOST : \n";
     for (size_t i = 0; i < mesh.FaceNormals.size(); ++i) {
 
-        std::cout << "Direction : ";
-
         std::cout << mesh.FaceNormals[i].x << " ";
         std::cout << mesh.FaceNormals[i].y << " ";
         std::cout << mesh.FaceNormals[i].z << "\n";
@@ -119,7 +117,7 @@ void printMeshEdges(const Mesh & mesh) {
     std::cout << "Printing Edges HOST : \n";
     for (size_t i = 0; i < mesh.EdgeMap.size(); i += 2) {
 
-        printf("%.6f  %.6f   %.6f ", mesh.EdgeMap[i].x,
+        printf("%.6f  %.6f  %.6f ", mesh.EdgeMap[i].x,
         mesh.EdgeMap[i].y,
         mesh.EdgeMap[i].z);
 

@@ -42,7 +42,7 @@ class Camera {
         
         int seed = rand();
         spawnRay<<<grid, block>>>(info, seed, imageDev);
-
+        handleCudaError(cudaGetLastError());
         handleCudaError(cudaDeviceSynchronize());
         handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
         Write_Image();

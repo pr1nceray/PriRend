@@ -78,8 +78,6 @@ __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const r
     float factor = 1.0f;
     const MeshGpu * curMesh;
     const glm::vec3 * normal;
-    collide = checkCollisions(ray, info);
-
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray, info);
         if (collide.meshIdx == -1) {

@@ -64,7 +64,7 @@ inline void handleCudaError(cudaError err) {
     if (err != cudaSuccess) {
         std::cerr << err << "\n";
         cudaDeviceReset();
-        throw std::runtime_error(" Issue with cuda; Error code : " + err);
+        throw std::runtime_error(" Issue with cuda; Error code : " + std::string(cudaGetErrorString(err)));
     }
 }
 __global__ void printMeshInfo(GpuInfo inf);

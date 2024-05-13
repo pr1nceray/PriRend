@@ -11,7 +11,7 @@ __device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandStat
 
 __device__ Ray MeshGpu::generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
     glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD(state);
-    glm::vec3 newOrigin = origin + (newDir * .001f); // avoid shadow acne
+    glm::vec3 newOrigin = origin + (newDir * .01f); // avoid shadow acne
     return Ray(newOrigin, newDir);
 }
 
@@ -129,7 +129,7 @@ void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, M
         err = cudaMemcpy(start, meshIn[i].Indicies.data(), sizeOfVertex, cudaMemcpyHostToDevice);
         handleCudaError(err);
         meshHost[i].vertexBuffer = static_cast<Vertex *>(start);
-        start = (void *)(static_cast<glm::vec3 *>(start) + meshIn[i].Indicies.size());
+        start = (void *)(static_cast<Vertex *>(start) + meshIn[i].Indicies.size());
     }
 }
 
@@ -186,6 +186,7 @@ __device__ void printMeshVertexs(MeshGpu * mesh) {
         mesh->vertexBuffer[j].Pos.z);
     }
 }
+
 
 
 __global__ void printMeshInfo(GpuInfo inf) {

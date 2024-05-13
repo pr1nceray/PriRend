@@ -14,7 +14,7 @@ CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
 ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
 CFLAGS  :=  -Xcompiler -Wall -Xcompiler -Wextra -Xcompiler -Wshadow -Xcompiler -Wwrite-strings  
-CUDAFLAGS := -maxrregcount 64 -arch=compute_86 -rdc true
+CUDAFLAGS := -maxrregcount 64 -arch=compute_86 -rdc=true
 LDFLAGS := -lassimp -lcudadevrt -lcurand 
 SPEEDFLAGS := -std=c++20 -O3 
 DEBUGFLAGS := -g -G
@@ -35,7 +35,7 @@ compile:
 # Debug Build
 debug:
 	@echo "Compiling Debug Build"
-	$(CC) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(DEBUGFLAGS) $(TARGETDEBUG)
+	$(CC) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(DEBUGFLAGS) $(CUDAFLAGS) $(TARGETDEBUG)
 
 #Style Check
 style:
