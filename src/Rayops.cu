@@ -60,9 +60,9 @@ __device__ bool intersectsMesh(const MeshGpu * mesh, const Ray & ray, CollisionI
 __device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info) {
     CollisionInfo closestObj;
     for (size_t i = 0; i < info->meshLen;++i) {
-        //if (intersectsMesh(&(info->meshDev[i]), ray, &closestObj)) {
-        //    closestObj.meshIdx = static_cast<int>(i);
-        //}
+        if (intersectsMesh(&(info->meshDev[i]), ray, &closestObj)) {
+            closestObj.meshIdx = static_cast<int>(i);
+        }
     }
     return closestObj;
 }
@@ -78,12 +78,14 @@ __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const r
     float factor = 1.0f;
     const MeshGpu * curMesh;
     const glm::vec3 * normal;
+    collide = checkCollisions(ray, info);
+
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray, info);
         if (collide.meshIdx == -1) {
             float a = (.5 * (ray.Dir.y + 1.0));
             final += (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a)) * factor;
-            return Color(1.0f, 1.0f, 1.0f);
+            return final;
         }
 
         curMesh = &(info->meshDev[collide.meshIdx]);
@@ -136,7 +138,6 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 }
 
 
-
 /*
 * spawnRay is responsible for creating parameters and calling traceRay
 * Averages the findings of the samples (controlled by SPP), and returns a color.
@@ -151,8 +152,6 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
     if(idx >= WIDTH || idy >= HEIGHT) {
         return;
     } 
-
-    printf("One d idx : %d\n",one_d_idx );
 
     const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
     const float delta_v = 1.0f/(HEIGHT);

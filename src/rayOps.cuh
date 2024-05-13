@@ -15,15 +15,15 @@
 #include "./Primitives.cuh"
 #include "./GpuInfo.cuh"
 
-const int WIDTH = 320;
-const int HEIGHT = 320;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 16;
-const int BOUNCES = 16;
+const int SPP = 256;
+const int BOUNCES = 32;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
