@@ -7,7 +7,7 @@
 #include <string>
 
 #include <glm/vec3.hpp>
-#include "./Mesh.cuh"
+#include "../Mesh.cuh"
 
 /*
 * Move to seperate class

@@ -4,7 +4,7 @@
 #include <vector>
 #include "./Object.cuh"
 #include "./Camera.cuh"
-#include "./GpuInfo.cuh"
+#include "./Gpu/GpuInfo.cuh"
 
 class Scene
 {

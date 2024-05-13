@@ -3,11 +3,12 @@ TARGETDEBUG := -o Debug-Build.exe
 
 CC      := nvcc
 
+
 SOURCE_DIR := src
-CUH_SOURCES := $(wildcard $(addsuffix /*.cuh, $(SOURCE_DIR)))
-CU_SOURCES := $(wildcard $(addsuffix /*.cu, $(SOURCE_DIR)))
-CPP_SOURCES := $(wildcard $(addsuffix /*.cpp, $(SOURCE_DIR)))
-CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
+CUH_SOURCES := $(shell find . -name "*.cuh") 
+CU_SOURCES := $(shell find . -name "*.cu") 
+CPP_SOURCES := $(shell find . -name "*.cpp") 
+CPP_HEADERS := $(shell find . -name "*.h") 
 
 
 

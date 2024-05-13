@@ -97,11 +97,9 @@ void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
     //copy over the gpu info struct
     handleCudaError(cudaMemcpy((void *) tmp, this, sizeof(GpuInfo), cudaMemcpyHostToDevice));
 
-    printMeshInfo<<<1,1>>>(tmp);
 
     //copy over the pointer to the gpu struct.  
     handleCudaError(cudaMemcpyToSymbol(sceneInfo, &tmp, sizeof(GpuInfo *)));
-        
 
     delete[] meshHost; //no longer needed, free resources.
 }

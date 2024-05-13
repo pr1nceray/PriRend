@@ -5,7 +5,7 @@
 #include "./Object.cuh"
 #include "./rayOps.cuh"
 #include "./stb_image_write.h"
-#include "./GpuInfo.cuh"
+#include "./Gpu/GpuInfo.cuh"
 
 /*
 * Camera is an object that has the ability to render 

@@ -13,7 +13,7 @@
 #include "./Color.cuh"
 #include "./Object.cuh"
 #include "./Primitives.cuh"
-#include "./GpuInfo.cuh"
+#include "./Gpu/GpuInfo.cuh"
 
 const int WIDTH = 1280;
 const int HEIGHT = 960;
