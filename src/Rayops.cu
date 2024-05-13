@@ -58,16 +58,50 @@ __device__ bool intersectsMesh(const MeshGpu * mesh, const Ray & ray, CollisionI
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
 __device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info) {
-    float distance = 0;
     CollisionInfo closestObj;
     for (size_t i = 0; i < info->meshLen;++i) {
-        if (intersectsMesh(&(info->meshDev[i]), ray, &closestObj)) {
-            closestObj.meshIdx = static_cast<int>(i);
-        }
+        //if (intersectsMesh(&(info->meshDev[i]), ray, &closestObj)) {
+        //    closestObj.meshIdx = static_cast<int>(i);
+        //}
     }
     return closestObj;
 }
 
+
+/*
+* Doesnt work due to ray not changing
+* also need to figure out the factor portion. 
+*/
+__device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount) {
+    Color final = Color(0.0f, 0.0f, 0.0f);
+    CollisionInfo collide;
+    float factor = 1.0f;
+    const MeshGpu * curMesh;
+    const glm::vec3 * normal;
+    for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
+        collide = checkCollisions(ray, info);
+        if (collide.meshIdx == -1) {
+            float a = (.5 * (ray.Dir.y + 1.0));
+            final += (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a)) * factor;
+            return Color(1.0f, 1.0f, 1.0f);
+        }
+
+        curMesh = &(info->meshDev[collide.meshIdx]);
+        normal = &(curMesh->getFaceNormal(collide.faceIdx));
+
+        // random direction
+        glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
+        ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
+        factor *= .5f; //factor gets reduced
+        collide.meshIdx = -1;
+    }
+    
+    return Color(0.0f, 0.0f, 0.0f); //bounce count exceeded
+}
+
+/*
+ * Not usable; results in cuda kernel error bc of requesting too many resources
+*/
 __device__ Color eval(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount) {
     if (bounceCount <= 0) {
         return Color(0, 0, 0);
@@ -77,10 +111,7 @@ __device__ Color eval(Ray & ray, const GpuInfo * info, curandState * const randS
     if (collide.meshIdx == -1) {
         float a = (.5 * (ray.Dir.y + 1.0));
 
-        return Color(0,0,0);//Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
-    }
-    else {
-        return Color(1,1,1);
+        return Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
     }
 
     const MeshGpu & curMesh = info->meshDev[collide.meshIdx];
@@ -101,7 +132,7 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
     ray.Origin = glm::vec3(0, 0, 0); 
     ray.Dir = glm::vec3(u, v, 1.0f);
     normalizeRayDir(ray);
-    return eval(ray, info, randState, BOUNCES);
+    return evalIter(ray, info, randState, BOUNCES);
 }
 
 
@@ -112,13 +143,16 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 */
 __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {   
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
-    const int one_d_idx = (idy * WIDTH * CHANNEL) + idx;
 
+    const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
 
-    if(idx > WIDTH || idy > HEIGHT) {
+    if(idx >= WIDTH || idy >= HEIGHT) {
         return;
     } 
+
+    printf("One d idx : %d\n",one_d_idx );
 
     const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
     const float delta_v = 1.0f/(HEIGHT);
@@ -126,12 +160,12 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
     curand_init(seed, one_d_idx ,0, &randState);
 
     Color Final;
-    
+
     for (size_t i = 0; i < static_cast<size_t>(SPP); ++i) {
         float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
         float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
         
-        //ANTI ALIASING!
+        // ANTI ALIASING!
         float varU = generateRandomFloatD(&randState) * delta_u;
         float varV = generateRandomFloatD(&randState) * delta_v;
         u += varU;
@@ -141,10 +175,9 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
     }
 
     Final /= static_cast<float>(SPP);
+    Final *= 255.0f;
     Final = clampColor(Final);
-    if(Final.r != 0 && Final.g != 0 && Final.b != 0) {
-        printf("Nonzero");
-    }
+
     colorArr[one_d_idx] = Final.r;
     colorArr[one_d_idx + 1] = Final.g;
     colorArr[one_d_idx + 2] = Final.b;

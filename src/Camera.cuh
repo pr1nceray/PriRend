@@ -34,18 +34,17 @@ class Camera {
         dim3 block = dim3(32,32,1);
         
 
-        //NOTE : SEE deviceQUery COMMAND!
         
         size_t gridx = (WIDTH/32) + (WIDTH%32>0?1:0);
         size_t gridy = (HEIGHT/32) + (HEIGHT%32>0?1:0);
 
         dim3 grid = dim3(gridx, gridy, 1);  
+        
         int seed = rand();
         spawnRay<<<grid, block>>>(info, seed, imageDev);
 
         handleCudaError(cudaDeviceSynchronize());
         handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
-
         Write_Image();
     }
 

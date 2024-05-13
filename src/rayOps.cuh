@@ -15,8 +15,8 @@
 #include "./Primitives.cuh"
 #include "./GpuInfo.cuh"
 
-const int WIDTH = 400;
-const int HEIGHT = 400;
+const int WIDTH = 320;
+const int HEIGHT = 320;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
@@ -46,6 +46,13 @@ __device__ bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
 __device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info);
+
+
+/*
+* Itertative version of eval bcuz cuda sucks at recursion.
+*/
+__device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount);
+
 /*
 * eval is the recursive portion that checks for collisions, and applies bsdf
 */

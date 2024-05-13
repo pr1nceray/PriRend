@@ -86,7 +86,7 @@ void Mesh::setColor(float r, float g, float b) {
 */
 
 void printMeshVertexes(const Mesh & mesh) {
-    std::cout << "Printing Vertexes : \n";
+    std::cout << "Printing Vertexes HOST : \n";
     for (size_t i = 0; i < mesh.Indicies.size(); ++i) {
         std::cout << mesh.Indicies[i].Pos.x << " ";
         std::cout << mesh.Indicies[i].Pos.y << " ";
@@ -95,7 +95,7 @@ void printMeshVertexes(const Mesh & mesh) {
 }
 
 void printMeshFaces(const Mesh & mesh) {
-    std::cout << "Printing Faces : \n";
+    std::cout << "Printing Faces HOST : \n";
     for (size_t i = 0; i < mesh.Faces.size(); ++i) {
         std::cout << mesh.Faces[i].x << " ";
         std::cout << mesh.Faces[i].y << " ";
@@ -104,7 +104,7 @@ void printMeshFaces(const Mesh & mesh) {
 }
 
 void printMeshNormals(const Mesh & mesh) {
-    std::cout << "Printing Normals : \n";
+    std::cout << "Printing Normals HOST : \n";
     for (size_t i = 0; i < mesh.FaceNormals.size(); ++i) {
 
         std::cout << "Direction : ";
@@ -115,10 +115,27 @@ void printMeshNormals(const Mesh & mesh) {
     }
 }
 
+void printMeshEdges(const Mesh & mesh) {
+    std::cout << "Printing Edges HOST : \n";
+    for (size_t i = 0; i < mesh.EdgeMap.size(); i += 2) {
+
+        printf("%.6f  %.6f   %.6f ", mesh.EdgeMap[i].x,
+        mesh.EdgeMap[i].y,
+        mesh.EdgeMap[i].z);
+
+        printf("%.6f  %.6f  %.6f \n", mesh.EdgeMap[i+1].x,
+        mesh.EdgeMap[i+1].y,
+        mesh.EdgeMap[i+1].z);
+
+    }
+}
+
 void printMesh(const Mesh & mesh) {
     printMeshFaces(mesh);
     std::cout << "\n\n\n";
     printMeshNormals(mesh);
     std::cout << "\n\n\n";
     printMeshVertexes(mesh);
+    std::cout << "\n\n\n";
+    printMeshEdges(mesh);
 }

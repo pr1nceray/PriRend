@@ -36,4 +36,4 @@ struct Color{
   __host__ __device__ Color operator/(const float & rhs);
 };
 
-__device__ Color clampColor(Color final);
+__host__ __device__ Color clampColor(Color final);

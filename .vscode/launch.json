@@ -1,16 +1,21 @@
 {
-    "version": "2.0.0",
-    "configurations":[
-        // Use IntelliSense to learn about possible attributes.
-        // Hover to view descriptions of existing attributes.
-        // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
         {
-            "type":"cppdbg",
+            "name": "CUDA C++: Launch",
+            "type": "cuda-gdb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/Pri-Render-Debug.exe",
+            "program": "${workspaceFolder}/Debug-Build.exe",
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "CUDA C++: Attach",
+            "type": "cuda-gdb",
+            "request": "attach", 
+            "program": "${workspaceFolder}/Debug-Build.exe",
         }
     ]
-    
 }

@@ -33,7 +33,7 @@ size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
     size_t total = 0;
     for (size_t i = 0; i < meshIn.size(); ++i) {
         // face normals
-         total += sizeof(glm::vec3) * meshIn[i].FaceNormals.size();
+        total += sizeof(glm::vec3) * meshIn[i].FaceNormals.size();
         // edgemap
         total += sizeof(glm::vec3) * meshIn[i].EdgeMap.size();
         //faces
@@ -163,16 +163,16 @@ __device__ void printMeshNormals(MeshGpu * mesh) {
 
 __device__ void printMeshEdges(MeshGpu * mesh) {
   printf("Printing Edges\n");
-    for (size_t j = 0; j < 2 * mesh->faceSize; ++j) {
+    for (size_t j = 0; j < mesh->faceSize; ++j) {
         printf("%.6f  %.6f  %.6f ",
-        mesh->edgeBuff[2 * j].x, 
-        mesh->edgeBuff[2 * j].y, 
-        mesh->edgeBuff[2 * j].z);
+        mesh->edgeBuff[j * 2].x, 
+        mesh->edgeBuff[j * 2].y, 
+        mesh->edgeBuff[j * 2].z);
 
         printf("%.6f  %.6f  %.6f \n",
-        mesh->edgeBuff[2 * j + 1].x, 
-        mesh->edgeBuff[2 * j + 1].y, 
-        mesh->edgeBuff[2 * j + 1].z);
+        mesh->edgeBuff[(j * 2) + 1].x, 
+        mesh->edgeBuff[(j * 2) + 1].y, 
+        mesh->edgeBuff[(j * 2) + 1].z);
 
     }
 }

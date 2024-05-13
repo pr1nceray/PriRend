@@ -1,5 +1,5 @@
 TARGET  :=  -o Pri-Render.exe
-TARGETDEBUG := -o Pri-Render-Debug.exe
+TARGETDEBUG := -o Debug-Build.exe
 
 CC      := nvcc
 
@@ -13,12 +13,13 @@ CPP_HEADERS := $(wildcard $(addsuffix /*.h, $(SOURCE_DIR)))
 
 ALL_FILES := $(CPP_HEADERS) $(CPP_SOURCES) $(CUH_SOURCES) $(CU_SOURCES)
 
-CFLAGS  :=  -Xcompiler -Wall -Xcompiler -Wextra -Xcompiler -Wshadow -Xcompiler -Wwrite-strings 
-LDFLAGS := -lassimp -lcudadevrt -lcurand -rdc true
-
+CFLAGS  :=  -Xcompiler -Wall -Xcompiler -Wextra -Xcompiler -Wshadow -Xcompiler -Wwrite-strings  
+CUDAFLAGS := -maxrregcount 32 -rdc true
+LDFLAGS := -lassimp -lcudadevrt -lcurand 
 SPEEDFLAGS := -std=c++20 -O3 
-DEBUGFLAGS := -g
+DEBUGFLAGS := -g -G
 
+# error in glm::vec libraries that is very annoying.
 WARNING := -diag-suppress 20012
 
 STYLE_CHECKER := cpplint
@@ -29,12 +30,12 @@ all: compile
 # Compile
 compile:
 	@echo "Compiling"
-	$(CC) $(TARGET) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(SPEEDFLAGS)
+	$(CC) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(SPEEDFLAGS) $(CUDAFLAGS) $(TARGET) 
 
 # Debug Build
 debug:
 	@echo "Compiling Debug Build"
-	$(CC) $(TARGETDEBUG) $(CPP_SOURCES) $(CU_SOURCES) $(LDFLAGS) $(DEBUGFLAGS)
+	$(CC) $(CPP_SOURCES) $(CU_SOURCES) $(WARNING) $(LDFLAGS) $(DEBUGFLAGS) $(TARGETDEBUG)
 
 #Style Check
 style:
