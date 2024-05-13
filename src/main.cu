@@ -4,9 +4,6 @@
 int main() {
     srand (static_cast <unsigned> (time(0)));
     Scene s = Scene();
-    //s.add_object("./assets/sphere1.obj");
-    //s.add_object("./assets/sphere2.obj");
-    //s.add_object("./assets/plane1.obj");
-    s.add_object("./assets/porsche.obj");
+    s.add_object("./assets/cube.obj");
     s.render();
 }

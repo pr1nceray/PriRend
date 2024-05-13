@@ -31,7 +31,7 @@ const glm::vec3 & Object::getCenter() const {
 
 void Object::setMeshColors(float r, float g, float b) {
     for(size_t i = 0; i < objInfo.size(); ++i) {
-        objInfo[i].setColor(r, g, b);
+        //objInfo[i].setColor(r, g, b);
     }
 }
 

@@ -1,5 +1,7 @@
 #include "./GpuInfo.cuh"
 
+__device__ GpuInfo * sceneInfo;
+
 __device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
     glm::vec3 randVec = generateRandomVecD(state);
     glm::vec3 normal = getFaceNormal(faceIdx);
@@ -85,12 +87,34 @@ void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
     //copy over all the info
     err = cudaMemcpy(meshDev, meshHost, sizeOfArray, cudaMemcpyHostToDevice);
     handleCudaError(err);
+
+    GpuInfo * tmp;
+
+    // malloc the gpu info struct
+    handleCudaError(cudaMalloc((void **)&tmp, sizeof(GpuInfo)));
+    printMeshInfo<<<1,1,1>>>(tmp);
+
+    //copy over the gpu info struct
+    handleCudaError(cudaMemcpy((void *) tmp, this, sizeof(GpuInfo), cudaMemcpyHostToDevice));
+
+    printMeshInfo<<<1,1>>>(tmp);
+
+    //copy over the pointer to the gpu struct.  
+    handleCudaError(cudaMemcpyToSymbol(sceneInfo, &tmp, sizeof(GpuInfo *)));
+        
+
     delete[] meshHost; //no longer needed, free resources.
 }
 
+/*
+* Since there should only be ONE Gpu info class at a time, 
+* and we are destructing, then we should free the resources that
+* we allocated in copyIntoDevice.
+*/
  __host__ void GpuInfo::freeResources() {
     cudaFree(infoBuffer);
     cudaFree(meshDev);
+    cudaFree(sceneInfo);
  }
 
 template<typename T>
@@ -194,6 +218,29 @@ __global__ void printMeshInfo(GpuInfo inf) {
         printf("Printing for mesh %d.\n", static_cast<int>(i));
 
         MeshGpu cur = inf.meshDev[i];
+        printMeshFaces(&cur);
+        printMeshNormals(&cur);
+        printMeshEdges(&cur);
+        printMeshVertexs(&cur);
+    }
+}
+__global__ void printMeshInfo(GpuInfo * inf) {
+    for (size_t i = 0; i < inf->meshLen; ++i) {
+        printf("Printing for mesh %d.\n", static_cast<int>(i));
+
+        MeshGpu cur = inf->meshDev[i];
+        printMeshFaces(&cur);
+        printMeshNormals(&cur);
+        printMeshEdges(&cur);
+        printMeshVertexs(&cur);
+    }
+}
+
+__global__ void printMeshGlobal() {
+
+    for (size_t i = 0; i < sceneInfo->meshLen; ++i) {
+        printf("Printing for mesh %d.\n", static_cast<int>(i));
+        MeshGpu cur = sceneInfo->meshDev[i];
         printMeshFaces(&cur);
         printMeshNormals(&cur);
         printMeshEdges(&cur);

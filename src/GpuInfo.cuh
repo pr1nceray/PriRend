@@ -13,8 +13,6 @@
 * Move to seperate class
 */
 
-__device__ GpuInfo sceneInfo;
-
 struct MeshGpu {
     glm::vec3 * normalBuff;
     glm::vec3 * edgeBuff;
@@ -71,3 +69,7 @@ inline void handleCudaError(cudaError err) {
     }
 }
 __global__ void printMeshInfo(GpuInfo inf);
+__global__ void printMeshInfo(GpuInfo * inf);
+__global__ void printMeshGlobal();
+
+__device__ extern GpuInfo * sceneInfo;

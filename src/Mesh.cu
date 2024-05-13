@@ -47,7 +47,7 @@ Ray Mesh::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & or
 
 /*
 * Getters
-*/
+
 Color Mesh::getColor(size_t face_idx, float u, float v, float w) const {
 
     // Texture Coordinates for all of the above.
@@ -66,6 +66,7 @@ Material const & Mesh::getMaterial() const {
     return mat;
 }
 
+*/
 
 const glm::vec3 & Mesh::getFaceNormal(size_t idx) const {
     return FaceNormals[idx];
@@ -74,11 +75,11 @@ const glm::vec3 & Mesh::getFaceNormal(size_t idx) const {
 
 /*
 * Setters
-*/
+
 void Mesh::setColor(float r, float g, float b) {
     mat.setDiffuse(Color(r, g, b));
 }
-
+*/
 
 
 /*

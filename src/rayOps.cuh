@@ -47,6 +47,7 @@ __device__ bool intersectsMesh(const Mesh & mesh, const Ray & ray, CollisionInfo
 */
 __device__ CollisionInfo checkCollisions(const Ray & ray);
 
+
 /*
 * Itertative version of eval bcuz cuda sucks at recursion.
 */
@@ -61,7 +62,7 @@ __device__ Color eval(Ray & ray, curandState * const randState, const int bounce
 * TraceRay is responsible for creating the ray and giving it a direction based on u,v.
 * Takes in the objects to determine collisions.
 */
-__device__ Color traceRay(float u, float v, curandState * const randState, GpuInfo * info);
+__device__ Color traceRay(float u, float v, curandState * const randState);
 
 /*
 * spawnRay is responsible for creating parameters and calling traceRay

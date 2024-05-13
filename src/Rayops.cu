@@ -57,10 +57,10 @@ __device__ bool intersectsMesh(const MeshGpu * mesh, const Ray & ray, CollisionI
 /*
 * Responsible for checking if a ray collides with an object for all objects in the scene. 
 */
-__device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info) {
+__device__ CollisionInfo checkCollisions(const Ray & ray) {
     CollisionInfo closestObj;
-    for (size_t i = 0; i < info->meshLen;++i) {
-        if (intersectsMesh(&(info->meshDev[i]), ray, &closestObj)) {
+    for (size_t i = 0; i < sceneInfo->meshLen;++i) {
+        if (intersectsMesh(&(sceneInfo->meshDev[i]), ray, &closestObj)) {
             closestObj.meshIdx = static_cast<int>(i);
         }
     }
@@ -72,21 +72,21 @@ __device__ CollisionInfo checkCollisions(const Ray & ray, const GpuInfo * info) 
 * Doesnt work due to ray not changing
 * also need to figure out the factor portion. 
 */
-__device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount) {
+__device__ Color evalIter(Ray & ray, curandState * const randState, const int bounceCount) {
     Color final = Color(0.0f, 0.0f, 0.0f);
     CollisionInfo collide;
     const MeshGpu * curMesh;
     const glm::vec3 * normal;
     float factor = 1.0f;
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
-        collide = checkCollisions(ray, info);
+        collide = checkCollisions(ray);
         if (collide.meshIdx == -1) {
             float a = (.5 * (ray.Dir.y + 1.0));
             final += (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a)) * factor;
             return final;
         }
 
-        curMesh = &(info->meshDev[collide.meshIdx]);
+        curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
         //normal = &(curMesh->getFaceNormal(collide.faceIdx));
 
         // random direction
@@ -102,37 +102,37 @@ __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const r
 /*
  * Not usable; results in cuda kernel error bc of requesting too many resources
 */
-__device__ Color eval(Ray & ray, const GpuInfo * info, curandState * const randState, const int bounceCount) {
+__device__ Color eval(Ray & ray, curandState * const randState, const int bounceCount) {
     if (bounceCount <= 0) {
         return Color(0, 0, 0);
     }
 
-    CollisionInfo collide = checkCollisions(ray, info);
+    CollisionInfo collide = checkCollisions(ray);
     if (collide.meshIdx == -1) {
         float a = (.5 * (ray.Dir.y + 1.0));
 
         return Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
     }
 
-    const MeshGpu & curMesh = info->meshDev[collide.meshIdx];
+    const MeshGpu & curMesh = sceneInfo->meshDev[collide.meshIdx];
     const glm::vec3 & normal = curMesh.getFaceNormal(collide.faceIdx);
 
     //random direction
     glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
     Ray newRay = curMesh.generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
-    return  (eval(newRay, info, randState, bounceCount -1) * .5f);
+    return  (eval(newRay, randState, bounceCount -1) * .5f);
 }
 
 /*
 * TraceRay is responsible for creating the ray and giving it a direction based on u,v.
 * Takes in the objects to determine collisions.
 */
-__device__ Color traceRay(float u, float v, curandState * const randState, GpuInfo * info) {
+__device__ Color traceRay(float u, float v, curandState * const randState) {
     Ray ray;
     ray.Origin = glm::vec3(0, 0, 0); 
     ray.Dir = glm::vec3(u, v, 1.0f);
     normalizeRayDir(ray);
-    return evalIter(ray, info, randState, BOUNCES);
+    return evalIter(ray, randState, BOUNCES);
 }
 
 
@@ -140,7 +140,7 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 * spawnRay is responsible for creating parameters and calling traceRay
 * Averages the findings of the samples (controlled by SPP), and returns a color.
 */
-__global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {   
+__global__ void spawnRay(int seed, uint8_t * colorArr) {   
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
     const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
@@ -164,7 +164,7 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
         u += generateRandomFloatD(&randState) * delta_u;
         u += generateRandomFloatD(&randState) * delta_v;
 
-        Final += traceRay(u, v, &randState, &info);
+        Final += traceRay(u, v, &randState);
     }
 
     /*
@@ -186,7 +186,7 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
 * 
 * Achieves the exact same as spawnRay, but does so progressively so that we can write to the image
 */
-__global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr) {   
+__global__ void spawnRayProgressive(int seed, float * colorArr) {   
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
     const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
@@ -206,7 +206,7 @@ __global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr) {
     u += generateRandomFloatD(&randState) * delta_u;
     u += generateRandomFloatD(&randState) * delta_v;
 
-    Color Final = traceRay(u, v, &randState, &info);
+    Color Final = traceRay(u, v, &randState);
 
     Final /= static_cast<float>(SPP);
 

@@ -34,7 +34,7 @@ class Camera {
     * Takes the objects in as arguments
     * Renders a scene given the objects in the Scene.
     */
-    void draw(GpuInfo info) {
+    void draw() {
                 
         size_t gridx = (WIDTH/32) + (WIDTH%32>0?1:0);
         size_t gridy = (HEIGHT/32) + (HEIGHT%32>0?1:0);
@@ -43,7 +43,7 @@ class Camera {
         
         int seed = rand();
     
-        spawnRay<<<grid, block>>>(info, seed, static_cast<uint8_t *>(imageDev));
+        spawnRay<<<grid, block>>>(seed, static_cast<uint8_t *>(imageDev));
         handleCudaError(cudaGetLastError());
         handleCudaError(cudaDeviceSynchronize());
         handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
@@ -51,7 +51,7 @@ class Camera {
         Write_Image();
     }
 
-        void drawProgressive(GpuInfo info) {
+        void drawProgressive() {
         
         size_t gridx = (WIDTH/32) + (WIDTH%32>0?1:0);
         size_t gridy = (HEIGHT/32) + (HEIGHT%32>0?1:0);
@@ -65,7 +65,7 @@ class Camera {
             // generate new seed, since its being passed as a param 
             int seed = rand();
     
-            spawnRayProgressive<<<grid, block>>>(info, seed, progressiveArr);
+            spawnRayProgressive<<<grid, block>>>(seed, progressiveArr);
             handleCudaError(cudaGetLastError());
             handleCudaError(cudaDeviceSynchronize());
 

@@ -25,7 +25,7 @@ class Scene
             }
         }
         GpuInfo temp = GpuInfo(sceneMeshs);
-        printMeshInfo<<<1,1,1>>>(temp);
+        printMeshGlobal<<<1,1,1>>>();
         return temp;
     }
     
@@ -33,7 +33,7 @@ class Scene
 
     void render() {
         GpuInfo gpu = prepareMesh();
-        cam.drawProgressive(gpu);
+        cam.drawProgressive();
         gpu.freeResources();
     }
 
