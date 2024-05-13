@@ -34,7 +34,7 @@ class Scene
 
     void render() {
         GpuInfo gpu = prepareMesh();
-        cam.draw(gpu);
+        cam.drawProgressive(gpu);
         gpu.freeResources();
     }
 

@@ -15,14 +15,14 @@
 #include "./Primitives.cuh"
 #include "./GpuInfo.cuh"
 
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 1280;
+const int HEIGHT = 960;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 256;
+const int SPP = 512;
 const int BOUNCES = 32;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
@@ -70,3 +70,24 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 */
 __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr);
 
+/*
+* Achieves the exact same as spawnRay, but does so progressively so that we can write to the image
+* Slightly slower due to the need to need to run to cpu every time we want to update the image.
+*/
+__global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr);
+
+
+/*
+* Convert a float to a color
+*/
+__device__ void convertSingle(const float * num, uint8_t *out);
+
+/*
+* Convert the float array to a uint8_t array
+*/
+__global__ void convertArr(const float * colorArr, uint8_t * out);
+
+/*
+* Clear array in preparation for writing
+*/
+__global__ void wipeArr(float * colorArr);

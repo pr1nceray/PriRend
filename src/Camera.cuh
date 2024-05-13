@@ -16,47 +16,84 @@ class Camera {
     public:
     Camera() : 
     cent(0, 0, 0, 0), rot(0, 0 ,0 ,0), imageHost(nullptr), imageDev(nullptr) {
-        sizeImage = sizeof(uint8_t) * CHANNEL * WIDTH * HEIGHT;
-        imageHost = new uint8_t[CHANNEL * WIDTH * HEIGHT];
-        handleCudaError(cudaMalloc((void **)&imageDev, sizeImage));
+        // used for host writing images
+        const size_t sizePixel = CHANNEL * WIDTH * HEIGHT;
+        sizeImage = sizePixel * sizeof(uint8_t);
+        imageHost = new uint8_t[sizePixel];
+        handleCudaError(cudaMalloc((void **)&imageDev, sizePixel * sizeof(uint8_t)));
+        handleCudaError(cudaMalloc((void **)&progressiveArr, sizePixel * sizeof(float)));
+        block = dim3(32,32,1);
     }
 
     ~Camera() {
         delete[] imageHost;
         cudaFree(imageDev);
+        cudaFree(progressiveArr);
     }
     /*
     * Takes the objects in as arguments
     * Renders a scene given the objects in the Scene.
     */
     void draw(GpuInfo info) {
-
-        dim3 block = dim3(32,32,1);
-        
-
-        
+                
         size_t gridx = (WIDTH/32) + (WIDTH%32>0?1:0);
         size_t gridy = (HEIGHT/32) + (HEIGHT%32>0?1:0);
 
         dim3 grid = dim3(gridx, gridy, 1);  
         
         int seed = rand();
-        spawnRay<<<grid, block>>>(info, seed, imageDev);
+    
+        spawnRay<<<grid, block>>>(info, seed, static_cast<uint8_t *>(imageDev));
         handleCudaError(cudaGetLastError());
         handleCudaError(cudaDeviceSynchronize());
         handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
+
         Write_Image();
+    }
+
+        void drawProgressive(GpuInfo info) {
+        
+        size_t gridx = (WIDTH/32) + (WIDTH%32>0?1:0);
+        size_t gridy = (HEIGHT/32) + (HEIGHT%32>0?1:0);
+
+        dim3 grid = dim3(gridx, gridy, 1);  
+
+        // Clear array since adding
+        wipeArr<<<grid, block>>>(progressiveArr);
+        for (size_t i = 0; i < SPP; ++i) {
+            
+            // generate new seed, since its being passed as a param 
+            int seed = rand();
+    
+            spawnRayProgressive<<<grid, block>>>(info, seed, progressiveArr);
+            handleCudaError(cudaGetLastError());
+            handleCudaError(cudaDeviceSynchronize());
+
+            // Convert and copy
+            convertArr<<<grid, block>>>(progressiveArr, imageDev);
+            handleCudaError(cudaGetLastError());
+            handleCudaError(cudaDeviceSynchronize());
+            handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
+
+            Write_Image();
+            
+        }
+
     }
 
     private:
     glm::vec4 cent;
     glm::vec4 rot;
+
     uint8_t * imageHost;
     uint8_t * imageDev; 
-    size_t sizeImage;
+    float * progressiveArr;
 
+    size_t sizeImage;
+    dim3 block;
     void Write_Image() {
         stbi_write_png("Output.png", WIDTH, HEIGHT, 3, imageHost, WIDTH * 3);
     }
+
 
 };

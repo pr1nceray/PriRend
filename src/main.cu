@@ -7,6 +7,6 @@ int main() {
     //s.add_object("./assets/sphere1.obj");
     //s.add_object("./assets/sphere2.obj");
     //s.add_object("./assets/plane1.obj");
-    s.add_object("./assets/suzanne.obj");
+    s.add_object("./assets/porsche.obj");
     s.render();
 }

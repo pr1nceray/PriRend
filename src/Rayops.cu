@@ -87,7 +87,7 @@ __device__ Color evalIter(Ray & ray, const GpuInfo * info, curandState * const r
         }
 
         curMesh = &(info->meshDev[collide.meshIdx]);
-        normal = &(curMesh->getFaceNormal(collide.faceIdx));
+        //normal = &(curMesh->getFaceNormal(collide.faceIdx));
 
         // random direction
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
@@ -142,9 +142,7 @@ __device__ Color traceRay(float u, float v, curandState * const randState, GpuIn
 */
 __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {   
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
     const int idy = blockIdx.y * blockDim.y + threadIdx.y;
-
     const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
 
     if(idx >= WIDTH || idy >= HEIGHT) {
@@ -163,16 +161,13 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
         float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
         
         // ANTI ALIASING!
-        float varU = generateRandomFloatD(&randState) * delta_u;
-        float varV = generateRandomFloatD(&randState) * delta_v;
-        u += varU;
-        u += varV;
+        u += generateRandomFloatD(&randState) * delta_u;
+        u += generateRandomFloatD(&randState) * delta_v;
 
         Final += traceRay(u, v, &randState, &info);
     }
 
-    Final /= static_cast<float>(SPP);
-    Final *= 255.0f;
+    Final *= 255.0f/static_cast<float>(SPP);
     Final = clampColor(Final);
 
     colorArr[one_d_idx] = Final.r;
@@ -180,3 +175,68 @@ __global__ void spawnRay(GpuInfo info, int seed, uint8_t * colorArr) {
     colorArr[one_d_idx + 2] = Final.b;
 }
 
+
+/*
+* 
+* Achieves the exact same as spawnRay, but does so progressively so that we can write to the image
+*/
+__global__ void spawnRayProgressive(GpuInfo info, int seed, float * colorArr) {   
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
+
+    if(idx >= WIDTH || idy >= HEIGHT) {
+        return;
+    } 
+
+    const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
+    const float delta_v = 1.0f/(HEIGHT);
+    curandState randState;
+    curand_init(seed, one_d_idx, 0, &randState);
+
+    float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
+    float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
+        
+    // ANTI ALIASING!
+    u += generateRandomFloatD(&randState) * delta_u;
+    u += generateRandomFloatD(&randState) * delta_v;
+
+    Color Final = traceRay(u, v, &randState, &info);
+
+    Final *= 255.0f/static_cast<float>(SPP);
+
+    colorArr[one_d_idx] += Final.r;
+    colorArr[one_d_idx + 1] += Final.g;
+    colorArr[one_d_idx + 2] += Final.b;
+}
+
+__device__ void convertSingle(const float * num, uint8_t *out) {
+    *out = *num>255?255:static_cast<uint8_t>(*num);
+}
+
+/*
+* Convert the float array to a uint8_t array
+*/
+__global__ void convertArr(const float * colorArr, uint8_t * out) {
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
+    if(idx >= WIDTH || idy >= HEIGHT) {
+        return;
+    } 
+    convertSingle(&colorArr[one_d_idx], &out[one_d_idx]);
+    convertSingle(&colorArr[one_d_idx + 1], &out[one_d_idx + 1]);
+    convertSingle(&colorArr[one_d_idx + 2], &out[one_d_idx + 2]);
+}
+
+__global__ void wipeArr(float * colorArr) {
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const int one_d_idx = CHANNEL * ((idy  * WIDTH) + (idx));
+    if(idx >= WIDTH || idy >= HEIGHT) {
+        return;
+    } 
+    colorArr[one_d_idx] = 0;
+    colorArr[one_d_idx + 1] = 0;
+    colorArr[one_d_idx + 2] = 0;
+}
