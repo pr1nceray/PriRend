@@ -3,7 +3,7 @@
 #include "device_launch_parameters.h"
 
 #include "./Object.cuh"
-#include "./rayOps.cuh"
+#include "./Gpu/rayOps.cuh"
 #include "./stb_image_write.h"
 #include "./Gpu/GpuInfo.cuh"
 

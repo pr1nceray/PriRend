@@ -10,26 +10,11 @@
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
 
-#include "./Color.cuh"
-#include "./Object.cuh"
-#include "./Primitives.cuh"
-#include "./Gpu/GpuInfo.cuh"
+#include "../Color.cuh"
+#include "../Object.cuh"
+#include "../Primitives.cuh"
+#include "./GpuInfo.cuh"
 
-const int WIDTH = 1280;
-const int HEIGHT = 960;
-const int CHANNEL = 3;
-
-const int FOV_Y = 60;
-const int FOV_X = 90;
-
-const int SPP = 128;
-const int BOUNCES = 16;
-
-const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
-const float epsil = .000001;
-
-
-using evalInfo = std::pair<bool, CollisionInfo>;
 
 
 /*

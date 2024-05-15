@@ -91,7 +91,7 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
 
         // random direction
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-        ray = curMesh->generateReflectiveVecOnFace(collide.faceIdx, ray.Dir, newOrigin);
+        ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
         collide.meshIdx = -1;
         factor *= .5f;
     }

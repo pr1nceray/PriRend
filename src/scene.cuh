@@ -4,6 +4,7 @@
 #include <vector>
 #include "./Object.cuh"
 #include "./Camera.cuh"
+#include "./Materials.cuh"
 #include "./Gpu/GpuInfo.cuh"
 
 class Scene
@@ -11,6 +12,8 @@ class Scene
     private:
     std::vector<Object> Scene_Objects;
     std::vector<Mesh> sceneMeshs;
+    std::vector<Material> sceneMats;
+
     Camera cam;
     
     /*
@@ -24,10 +27,11 @@ class Scene
                 sceneMeshs.push_back(curObj.getObjInfo()[j]);
             }
         }
-        GpuInfo temp = GpuInfo(sceneMeshs);
+        GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
         printMeshGlobal<<<1,1,1>>>();
         return temp;
     }
+    
     
     public:
 
@@ -37,8 +41,9 @@ class Scene
         gpu.freeResources();
     }
 
+
     Object & add_object(std::string obj_name) {
-        Scene_Objects.push_back(Object(obj_name));
+        Scene_Objects.push_back(Object(obj_name, sceneMats));
         return Scene_Objects.back();
     }
 

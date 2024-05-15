@@ -9,10 +9,11 @@
 
 #include "./Mesh.cuh"
 #include "./Primitives.cuh"
+#include "./Materials.cuh"
 
 class Object {
     public:
-    explicit Object(const std::string & file_name);
+    explicit Object(const std::string & fileName, std::vector<Material> & mats);
 
     Color getMeshColor(const CollisionInfo & info) const {
         float w = 1.0f - info.CollisionPoint.x - info.CollisionPoint.y;
@@ -46,4 +47,9 @@ class Object {
     void CreateMeshes(aiNode * node, const aiScene * scene);
     Mesh processMesh(aiMesh * mesh, const aiScene * scene);
 
+
+
+
+    void CreateMaterials(const aiScene * scene, std::vector<Material> & material);
+    void processDiffuse(const aiMaterial * mat, std::vector<Material> & materials);
 };

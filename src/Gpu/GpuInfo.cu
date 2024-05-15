@@ -2,29 +2,6 @@
 
 __device__ GpuInfo * sceneInfo;
 
-__device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
-    glm::vec3 randVec = generateRandomVecD(state);
-    glm::vec3 normal = getFaceNormal(faceIdx);
-    randVec *= glm::dot(randVec, normal) < 0?-1:1;
-
-    glm::vec3 newOrigin = origin + (randVec * .001f); //avoid shadow acne
-    return Ray(newOrigin, randVec);
-}
-
-__device__ Ray MeshGpu::generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {
-    glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD(state);
-    glm::vec3 newOrigin = origin + (newDir * .01f); // avoid shadow acne
-    return Ray(newOrigin, newDir);
-}
-
-__device__ Ray MeshGpu::generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir, const glm::vec3 & origin) const {
-    const glm::vec3 & normal = getFaceNormal(faceIdx);
-    const glm::vec3 newDir = dir - (2 * glm::dot(normal, dir) * normal);
-    const glm::vec3 newOrigin = origin + (newDir * .01f); // avoid shadow acne
-    return Ray(newOrigin, newDir);
-}
-
-
 /*
 * TODO : Materials
 */
@@ -53,7 +30,22 @@ size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
     return total;
 }
 
-void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
+void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn, const std::vector<Material> & matIn) {
+
+    copyMeshData(meshIn);
+    copyMaterialData(matIn);
+    //copy over all the info into global var
+    GpuInfo * tmp;
+    // malloc the gpu info struct
+    handleCudaError(cudaMalloc((void **)&tmp, sizeof(GpuInfo)));
+    printMeshInfo<<<1,1,1>>>(tmp);
+    //copy over the gpu info struct
+    handleCudaError(cudaMemcpy((void *) tmp, this, sizeof(GpuInfo), cudaMemcpyHostToDevice));
+    //copy over the pointer to the gpu struct.  
+    handleCudaError(cudaMemcpyToSymbol(sceneInfo, &tmp, sizeof(GpuInfo *)));
+}
+
+void GpuInfo::copyMeshData(const std::vector<Mesh> & meshIn) {
     meshLen = meshIn.size();
 
     size_t sizeOfMeshes = sumMeshSizes(meshIn); //size of the information
@@ -68,41 +60,81 @@ void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
 
     MeshGpu * meshHost = new MeshGpu[sizeOfArray]; //create information holder on host
 
-    /*
-    * Copy over all the vertex buffers one after each other for cache purpouses.
-    * Buffer copy is so that we dont lose infoBuffer.
-    * take the size of the normalVector array, and copy over the data into where
-    * BufferCopy is pointing. From there, set the pointer of mesh's to be accurate.
-    * Then add the size that we copied.
-    * same for TQ and edgemap.
-    * 
-    */
     void * bufferCpy = infoBuffer;
     copyNormalBuff(bufferCpy, meshIn, meshHost);
     copyEdgeBuff(bufferCpy, meshIn, meshHost);
     copyFaceBuff(bufferCpy, meshIn, meshHost);
     copyVertexBuff(bufferCpy, meshIn, meshHost);
-    setLength(meshIn, meshHost);
-
-    //copy over all the info
-    err = cudaMemcpy(meshDev, meshHost, sizeOfArray, cudaMemcpyHostToDevice);
-    handleCudaError(err);
-
-    GpuInfo * tmp;
-
-    // malloc the gpu info struct
-    handleCudaError(cudaMalloc((void **)&tmp, sizeof(GpuInfo)));
-    printMeshInfo<<<1,1,1>>>(tmp);
-
-    //copy over the gpu info struct
-    handleCudaError(cudaMemcpy((void *) tmp, this, sizeof(GpuInfo), cudaMemcpyHostToDevice));
-
-
-    //copy over the pointer to the gpu struct.  
-    handleCudaError(cudaMemcpyToSymbol(sceneInfo, &tmp, sizeof(GpuInfo *)));
+    setLengthMesh(meshIn, meshHost);
+    handleCudaError(cudaMemcpy(meshDev, meshHost, sizeOfArray, cudaMemcpyHostToDevice));
 
     delete[] meshHost; //no longer needed, free resources.
 }
+
+void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
+    
+    /*
+    * Obtain material map
+    * malloc the size of the texture info
+    * then, malloc the size of the images
+    * Copy over images
+    */
+    auto & matMap = Material::getTextures();
+    
+    size_t textureBuffSize = sumTextArr(matMap);
+    size_t textureInfoSize = sumTextInfoSize(matMap);
+    size_t materialBuffSize = sumMatArr(matIn);
+    
+    std::unordered_map<uintptr_t, TextInfo *> textureTranslate;
+
+
+    float * textBuff;
+    MatGpu * matInfo;
+    TextInfo * textInfo;
+
+    handleCudaError(cudaMalloc((void **)&textBuff, textureBuffSize)); //malloc the raw texture data buffer
+    handleCudaError(cudaMalloc((void **)&textInfo, textureInfoSize)); //malloc the other info (ptr to data, size, width)
+    handleCudaError(cudaMalloc((void **)&matInfo, materialBuffSize));
+
+    //copy over the buffers
+    MatGpu * matHost = new MatGpu[matIn.size()];
+    TextInfo * textHost = new TextInfo[matMap.size()];
+    void * textStart = textBuff;
+
+    // NOTE : slow due the amount of calls to cudaMemcpy
+    // possible improvement : use a vector of floats instead of map
+    // and have one big cudaMemcpy call?
+
+    size_t idx = 0;
+    for(auto it : matMap) {
+        // copy over all textures into texture buffer
+        size_t sizeCpy = CHANNEL * it.second->width * it.second->height;
+        handleCudaError(cudaMemcpy(textStart, it.second->arr, sizeof(float) * sizeCpy, cudaMemcpyHostToDevice));
+        textHost[idx] = *it.second;
+        textHost[idx].arr = static_cast<float *>(textStart); // set array to point to somewhere in raw texture buffer
+        // add the textureinfo ptr linking pre-malloc and post-malloc data
+        textureTranslate[reinterpret_cast<uintptr_t>(it.second)] = static_cast<TextInfo *>(textStart); 
+        textStart = static_cast<void *>(static_cast<float *>(textStart) + sizeCpy); // increment buffer
+        idx++;
+    }
+    // copy over textureInfo buffer
+    handleCudaError(cudaMemcpy(textInfo, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
+
+    for (size_t i = 0; i < matIn.size(); i++) {
+        auto it = textureTranslate.find(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()));
+        if (it == textureTranslate.end()) {
+            throw std::runtime_error("A material has a texture that we never loaded");
+        }
+        matHost[i].diffuse = it->second;
+    }
+
+    handleCudaError(cudaMemcpy(matInfo, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
+    
+    //free what we no longer need
+    delete[] matHost;
+    delete[] textHost;
+}
+
 
 /*
 * Since there should only be ONE Gpu info class at a time, 
@@ -114,6 +146,16 @@ void GpuInfo::copyIntoDevice(const std::vector<Mesh> & meshIn) {
     cudaFree(meshDev);
     cudaFree(sceneInfo);
  }
+
+
+/*
+* Copy over all the vertex buffers one after each other for cache purpouses.
+* Buffer copy is so that we dont lose infoBuffer.
+* take the size of the normalVector array, and copy over the data into where
+* BufferCopy is pointing. From there, set the pointer of mesh's to be accurate.
+* Then add the size that we copied.
+* same for TQ and edgemap.
+*/
 
 template<typename T>
 void GpuInfo::copyBuff(void * & start, const std::vector<T> * data, T * & write) {
@@ -130,39 +172,67 @@ void GpuInfo::copyNormalBuff(void * & start, const std::vector<Mesh> & meshIn, M
         copyBuff<glm::vec3>(start, &meshIn[i].FaceNormals, meshHost[i].normalBuff);
     }
 }
-
 void GpuInfo::copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) { 
         copyBuff<glm::vec3>(start, &meshIn[i].EdgeMap, meshHost[i].edgeBuff);
     }
 
 }
-
 void GpuInfo::copyFaceBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) { 
         copyBuff<glm::ivec3>(start, &meshIn[i].Faces, meshHost[i].faceBuff);
     }
 }
-
-
 void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) { 
         copyBuff<Vertex>(start, &meshIn[i].Indicies, meshHost[i].vertexBuffer);
     }
 }
 
-void GpuInfo::setLength( const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
+/*
+* Set the lengths for the fields inside of infobuffer
+*/
+void GpuInfo::setLengthMesh( const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for(size_t i = 0; i < meshIn.size(); ++i) {
         meshHost[i].faceSize = meshIn[i].Faces.size();
         meshHost[i].vertexSize = meshIn[i].Indicies.size();
     }
 }
 
+/*
+* The size that the array of structural data takes up
+*/
 size_t GpuInfo::sumMeshArr(const std::vector<Mesh> & meshIn) const {
     return sizeof(MeshGpu) * meshIn.size();
 }
 
+/*
+* Size needed to allocate all the textures and their respective textInfo
+* Should be the size of the textInfo buffer and the size of the respective textures
+*/
+size_t GpuInfo::sumTextArr(const std::unordered_map<std::string, TextInfo *> & textures) const {
+    size_t numElem = 0;
+    for (auto it : textures) {
+        numElem += (sizeof(float) * (it.second)->height * (it.second)->width * CHANNEL);
+    }
+    return numElem;
+   
+}
 
+size_t GpuInfo::sumTextInfoSize(const std::unordered_map<std::string, TextInfo *> & textures) const {
+    return sizeof(TextInfo) * textures.size();
+}
+/*
+* Size of all the Materials that is needed
+*/
+size_t GpuInfo::sumMatArr(const std::vector<Material> & matIn) const {
+    return sizeof(MatGpu) * matIn.size();
+}
+
+
+/*
+* Useful functions for debugging
+*/
 __device__ void printMeshFaces(MeshGpu * mesh) {
     printf("Printing Faces\n");
     for (size_t j = 0; j < mesh->faceSize; ++j) {
@@ -214,7 +284,6 @@ __device__ void printMeshVertexs(MeshGpu * mesh) {
 __global__ void printMeshInfo(GpuInfo inf) {
     for (size_t i = 0; i < inf.meshLen; ++i) {
         printf("Printing for mesh %d.\n", static_cast<int>(i));
-
         MeshGpu cur = inf.meshDev[i];
         printMeshFaces(&cur);
         printMeshNormals(&cur);
@@ -225,7 +294,6 @@ __global__ void printMeshInfo(GpuInfo inf) {
 __global__ void printMeshInfo(GpuInfo * inf) {
     for (size_t i = 0; i < inf->meshLen; ++i) {
         printf("Printing for mesh %d.\n", static_cast<int>(i));
-
         MeshGpu cur = inf->meshDev[i];
         printMeshFaces(&cur);
         printMeshNormals(&cur);

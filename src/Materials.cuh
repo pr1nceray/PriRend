@@ -1,5 +1,12 @@
 #pragma once
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 #include <math.h>
+
+#include <string>
+#include <stdexcept>
+#include <unordered_map>
+
 #include <glm/vec3.hpp>
 #include "./Primitives.cuh"
 #include "./Color.cuh"
@@ -11,39 +18,37 @@
 class Material {
     public:
     Material() : 
-    DiffuseBasic(Color(.5f, .5f, .5f)), materialOpt(0) {
+    Diffuse(nullptr), Normal(nullptr), Specular(nullptr) {
+
     }
 
+    static const std::unordered_map<std::string, TextInfo *> & getTextures();
+    TextInfo loadImage(const std::string & fileName);
+    void loadDiffuse(const std::string & fileName);
+    void loadNormal(const std::string & fileName);
+    void loadSpecular(const std::string & fileName);
+    
     /*
     * Class functions
     */
     float getLambertian(const Ray & ray, const glm::vec3 & normal) const;
-    const Color bsdf(const Ray & rayIn, const Ray & rayOut, const glm::vec3 & normal) const;
-    const Color brdf(const Ray & rayIn, const Ray & rayOut) const;
 
+    void freeResources(); 
 
     /*
     * Getters / Setters
     */
-    Color getDiffuse() const;
-    Color getAmbient() const;
-    Color getSpecular() const;
 
-    void setDiffuse(const Color & colorIn);
-    void setAmbient(const Color & colorIn);
-    void setSpecular(const Color & colorIn);
 
+    const TextInfo * getDiffuse() const;
     private :
-    glm::vec3 generateNewDir(const Ray & rayIn, const glm::vec3 & normal) const;
+    TextInfo *checkInScene(const std::string & fileName);
 
-    Color ambientBasic;
-    Color DiffuseBasic;
-    Color SpecularBasic;
-    size_t materialOpt;
+    TextInfo *Diffuse;
+    TextInfo *Normal;
+    TextInfo *Specular;
 
-    float * Ambient;
-    float * Diffuse;
-    float * Specular;
-
+    static std::unordered_map<std::string, TextInfo *> currentMaterials;
+    void convert(uint8_t * source, size_t max, float * out);
 };
 

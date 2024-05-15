@@ -1,62 +1,54 @@
 #include "./Materials.cuh"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
+std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
 
-float Material::getLambertian(const Ray & ray, const glm::vec3 & normal) const {
-    return std::fabs(glm::dot(ray.Dir, normal));
-} 
+const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
+    return currentMaterials;
+}
+void Material::loadDiffuse(const std::string & fileName) {
+    Diffuse = checkInScene(fileName);
+}
 
-glm::vec3 Material::generateNewDir(const Ray & rayIn, const glm::vec3 & normal) const {
-    switch (materialOpt) {
-        case (0) : {
-            glm::vec3 randVec = generateRandomVecH();
-            if(glm::dot(randVec, normal) < 0) {
-                randVec *= -1.0f;
-            }
-            return randVec;
-        }
-        case (1) : {
-            return (rayIn.Dir - (2.0f * (glm::dot(rayIn.Dir, normal)) * normal));
-        }
-        case (2) : {
+void Material::loadNormal(const std::string & fileName) {
+    Normal = checkInScene(fileName);
+}
 
-        }
+void Material::loadSpecular(const std::string & fileName) {
+    Specular = checkInScene(fileName);
+}
+
+TextInfo Material::loadImage(const std::string & fileName) {
+    int width, height, numChannel;
+    uint8_t * imageData = stbi_load(std::string("./assets/Textures/" + fileName).c_str(), & width, &height, &numChannel, 3);
+    if (imageData == NULL) {
+        throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }
-    return glm::vec3(0,0,0);
+    float * newImageData = new float[width * height * 3];
+    convert(imageData, width * height * 3, newImageData);
+    stbi_image_free(imageData);
+    return TextInfo{newImageData, width, height};
 }
 
-const Color Material::bsdf(const Ray & rayIn, const Ray & rayOut, const glm::vec3 & normal) const {
-    //glm::vec3 newRayDir = generateNewDir(rayIn, normal);
-
-    float lambertian = getLambertian(rayIn, normal);
-
-    return Color(1.0f, 1.0f, 1.0f);
-
-
+TextInfo *Material::checkInScene(const std::string & fileName) {
+    if (Material::currentMaterials.find(fileName) != Material::currentMaterials.end()) {
+        return Material::currentMaterials.find(fileName)->second;
+    }
+    TextInfo *texture = new TextInfo();
+    *texture = loadImage(fileName);
+    Material::currentMaterials[fileName] = texture;
+    return texture;
 }
 
-const Color Material::brdf(const Ray & rayIn, const Ray & rayOut) const {
-    return Color(1.0f, 1.0f, 1.0f);
+// will cause slowdown when loading many images.
+// consider speeding up with cuda kernel?
+void Material::convert(uint8_t * source, size_t max, float * out) {
+    for(size_t i = 0; i < max; ++i) {
+        out[i] = source[i]/255.0f;
+    }
 }
 
-
-Color Material::getDiffuse() const {
-    return DiffuseBasic;
-}
-
-Color Material::getAmbient() const {
-    return ambientBasic;
-}
-
-Color Material::getSpecular() const {
-    return SpecularBasic;
-}
-
-void Material::setDiffuse(const Color & colorIn) {
-    DiffuseBasic = colorIn;
-}
-void Material::setAmbient(const Color & colorIn) {
-    ambientBasic = colorIn;
-}
-void Material::setSpecular(const Color & colorIn) {
-    SpecularBasic = colorIn;
+const TextInfo * Material::getDiffuse() const {
+    return Diffuse;
 }
