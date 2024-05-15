@@ -21,7 +21,7 @@ void Material::loadSpecular(const std::string & fileName) {
 
 TextInfo Material::loadImage(const std::string & fileName) {
     int width, height, numChannel;
-    uint8_t * imageData = stbi_load(std::string("./assets/Textures/" + fileName).c_str(), & width, &height, &numChannel, 3);
+    uint8_t * imageData = stbi_load(std::string("./assets/" + fileName).c_str(), & width, &height, &numChannel, 3);
     if (imageData == NULL) {
         throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }

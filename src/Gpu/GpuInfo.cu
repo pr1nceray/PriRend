@@ -52,7 +52,6 @@ void GpuInfo::copyMeshData(const std::vector<Mesh> & meshIn) {
     cudaError_t err = cudaMalloc((void **)(&infoBuffer), sizeOfMeshes); //malloc the info
     handleCudaError(err);
 
-
     size_t sizeOfArray = sumMeshArr(meshIn); // size of the struct to hold the information
 
     err = cudaMalloc((void **)(&meshDev), sizeOfArray); //malloc the array of ptrs
@@ -65,6 +64,7 @@ void GpuInfo::copyMeshData(const std::vector<Mesh> & meshIn) {
     copyEdgeBuff(bufferCpy, meshIn, meshHost);
     copyFaceBuff(bufferCpy, meshIn, meshHost);
     copyVertexBuff(bufferCpy, meshIn, meshHost);
+    copyMaterialIndex(meshIn, meshHost);
     setLengthMesh(meshIn, meshHost);
     handleCudaError(cudaMemcpy(meshDev, meshHost, sizeOfArray, cudaMemcpyHostToDevice));
 
@@ -105,13 +105,13 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
         handleCudaError(cudaMemcpy(textStart, it.second->arr, sizeof(float) * sizeCpy, cudaMemcpyHostToDevice));
         textHost[idx] = *it.second;
         textHost[idx].arr = static_cast<float *>(textStart); // set array to point to somewhere in raw texture buffer
-        // add the textureinfo ptr linking pre-malloc and post-malloc data
-        textureTranslate[reinterpret_cast<uintptr_t>(it.second)] = static_cast<TextInfo *>(textStart); 
+        textureTranslate[reinterpret_cast<uintptr_t>(it.second)] = (textureInfo + idx); 
         textStart = static_cast<void *>(static_cast<float *>(textStart) + sizeCpy); // increment buffer
         idx++;
     }
     // copy over textureInfo buffer
-    handleCudaError(cudaMemcpy(textureBuffer, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
+    handleCudaError(cudaMemcpy((void *)textureInfo, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
+
     textLen = matMap.size();
     for (size_t i = 0; i < matIn.size(); i++) {
         auto it = textureTranslate.find(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()));
@@ -184,6 +184,11 @@ void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, M
     }
 }
 
+void GpuInfo::copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
+    for (size_t i = 0; i < meshIn.size(); ++i) {
+        meshHost[i].matIdx = meshIn[i].matIdx;
+    }
+}
 /*
 * Set the lengths for the fields inside of infobuffer
 */
@@ -294,6 +299,7 @@ __global__ void printMeshInfo(GpuInfo * inf) {
         printMeshNormals(&cur);
         printMeshEdges(&cur);
         printMeshVertexs(&cur);
+        printf("Material idx : %d", cur.matIdx);
     }
 }
 

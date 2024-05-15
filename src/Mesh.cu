@@ -137,4 +137,7 @@ void printMesh(const Mesh & mesh) {
     printMeshVertexes(mesh);
     std::cout << "\n\n\n";
     printMeshEdges(mesh);
+    std::cout << "\n\n\n";
+    std::cout << "Material idx for this mesh : " << mesh.matIdx;
+    std::cout << "\n\n\n";
 }

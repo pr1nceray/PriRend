@@ -23,6 +23,7 @@ struct MeshGpu {
     Vertex * vertexBuffer;
     size_t faceSize;
     size_t vertexSize;
+    size_t matIdx;
 
     __device__ Ray generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
     __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;

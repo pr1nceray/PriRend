@@ -44,8 +44,8 @@ class Object {
     * Internal functions for setting up the object
     */
 
-    void CreateMeshes(aiNode * node, const aiScene * scene);
-    Mesh processMesh(aiMesh * mesh, const aiScene * scene);
+    void CreateMeshes(aiNode * node, const aiScene * scene, size_t baseMatIdx);
+    Mesh processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx);
 
 
 

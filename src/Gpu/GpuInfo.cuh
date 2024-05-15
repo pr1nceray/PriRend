@@ -49,6 +49,7 @@ struct GpuInfo {
     void copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyFaceBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
+    void copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void setLengthMesh( const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     size_t sumMeshSizes(const std::vector<Mesh> & meshIn) const; 
     size_t sumMeshArr(const std::vector<Mesh> & meshIn) const; 

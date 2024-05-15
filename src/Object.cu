@@ -10,8 +10,8 @@ Object::Object(const std::string & fileName, std::vector<Material> & mats) {
         throw std::runtime_error("Error loading object");
     }
 
+    CreateMeshes(scene->mRootNode, scene, mats.size());
     CreateMaterials(scene, mats);
-    CreateMeshes(scene->mRootNode, scene);
 }
 
 /*
@@ -40,22 +40,22 @@ void Object::setMeshColors(float r, float g, float b) {
 * Internal functions for setting up the object
 */
 
-void Object::CreateMeshes(aiNode * node, const aiScene * scene) {
+void Object::CreateMeshes(aiNode * node, const aiScene * scene, size_t baseMatIdx) {
     if(!scene->HasMeshes()) {
         return;
     }
 
     for (size_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh * mesh = scene->mMeshes[node->mMeshes[i]];
-        objInfo.push_back(processMesh(mesh, scene));
+        objInfo.push_back(processMesh(mesh, scene, baseMatIdx));
     }
 
     for (size_t i = 0; i < node->mNumChildren; ++i) {
-        CreateMeshes(node->mChildren[i], scene);
+        CreateMeshes(node->mChildren[i], scene, baseMatIdx);
     }
 }
 
-Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene) {
+Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx) {
     Mesh meshlcl;
     for (size_t i = 0; i < mesh->mNumVertices; ++i) {
         
@@ -66,13 +66,15 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene) {
         // ALSO CHECK PREVIOUS GIT HISTORY FOR MORE INFO
         glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-        glm::vec2 TQ = glm::vec2(0, 0);
+        glm::vec2 TQ = glm::vec2(0.0f, 0.0f);
         if (mesh->mTextureCoords[0]) {
             TQ = glm::vec2(mesh->mTextureCoords[0][i].x,
             mesh->mTextureCoords[0][i].y);
         }
-        Vertex v_add {pos, norm, TQ};
-        meshlcl.Indicies.push_back(v_add);
+
+        meshlcl.matIdx = baseMatIdx + static_cast<size_t>(mesh->mMaterialIndex); 
+        
+        meshlcl.Indicies.push_back(Vertex{pos, norm, TQ});
     }
 
     for (size_t i = 0; i < mesh->mNumFaces; ++i) {
