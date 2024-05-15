@@ -30,11 +30,6 @@ const glm::vec3 & Object::getCenter() const {
     return Center;
 }
 
-void Object::setMeshColors(float r, float g, float b) {
-    for(size_t i = 0; i < objInfo.size(); ++i) {
-
-    }
-}
 
 /*
 * Internal functions for setting up the object
@@ -67,14 +62,27 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
         glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         glm::vec2 TQ = glm::vec2(0.0f, 0.0f);
+
+        //only accept the first vertex coord.
         if (mesh->mTextureCoords[0]) {
             TQ = glm::vec2(mesh->mTextureCoords[0][i].x,
             mesh->mTextureCoords[0][i].y);
         }
-
-        meshlcl.matIdx = baseMatIdx + static_cast<size_t>(mesh->mMaterialIndex); 
-        
         meshlcl.Indicies.push_back(Vertex{pos, norm, TQ});
+    }
+
+    //0 mats 
+    //OR the scene (which should only have one material) has no diffuse
+    //set the material to be index 0.
+    // note : doesnt work for materials that have no diffuse but are still valid
+    // consider expanding upon this later?
+    aiString tmp = scene->mMaterials[0]->GetName();
+    if(scene->mNumMaterials == 0 
+    || scene->mMaterials[0]->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
+        meshlcl.matIdx = 0;
+    }
+    else{
+        meshlcl.matIdx = baseMatIdx + static_cast<size_t>(mesh->mMaterialIndex); 
     }
 
     for (size_t i = 0; i < mesh->mNumFaces; ++i) {
@@ -105,7 +113,7 @@ void Object::CreateMaterials(const aiScene * scene, std::vector<Material> & mate
 void Object::processDiffuse(const aiMaterial * mat, std::vector<Material> & materials) {
     Material matToAdd;
     for(size_t i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i){
-        if(i >= 1 ) {
+        if(i >= 1) {
             throw std::runtime_error("Unable to process current object; Material has more than 1 diffuse texture");
         }
         aiString str;

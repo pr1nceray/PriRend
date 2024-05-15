@@ -24,8 +24,6 @@ class Object {
         return objInfo[meshIdx].getFaceNormal(faceIdx);
     }
 
-
-    void setMeshColors(float r, float g, float b);
     
     /*
     * Getters

@@ -18,13 +18,9 @@ __device__ const glm::vec3 & MeshGpu::getFaceNormal(size_t idx) const {
 size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
     size_t total = 0;
     for (size_t i = 0; i < meshIn.size(); ++i) {
-        // face normals
         total += sizeof(glm::vec3) * meshIn[i].FaceNormals.size();
-        // edgemap
         total += sizeof(glm::vec3) * meshIn[i].EdgeMap.size();
-        //faces
         total += sizeof(glm::ivec3) * meshIn[i].Faces.size();
-        // V buffer.
         total += sizeof(Vertex) * meshIn[i].Indicies.size(); 
     }
     return total;

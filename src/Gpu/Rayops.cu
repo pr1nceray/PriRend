@@ -87,7 +87,7 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         }
 
         curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
-        //normal = &(curMesh->getFaceNormal(collide.faceIdx));
+
 
         // random direction
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;

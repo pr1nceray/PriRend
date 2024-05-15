@@ -39,7 +39,6 @@ class Material {
     * Getters / Setters
     */
 
-
     const TextInfo * getDiffuse() const;
     private :
     TextInfo *checkInScene(const std::string & fileName);

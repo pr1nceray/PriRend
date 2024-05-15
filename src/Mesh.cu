@@ -44,42 +44,10 @@ Ray Mesh::generateLambertianVecOnFace(const size_t faceIdx, const glm::vec3 & or
 
 
 
-
-/*
-* Getters
-
-Color Mesh::getColor(size_t face_idx, float u, float v, float w) const {
-
-    // Texture Coordinates for all of the above.
-    // W * a, U * B, C * v.
-    const glm::vec2 & PointA = Indicies[Faces[face_idx].x].TQ;
-    const glm::vec2 & PointB = Indicies[Faces[face_idx].y].TQ;
-    const glm::vec2 & PointC = Indicies[Faces[face_idx].z].TQ;
-
-    float x_average = w * PointA.x + u * PointB.x + v * PointC.x;
-    float y_average = w * PointA.y + u * PointB.y + v * PointC.y;
-    
-    return mat.getDiffuse(); // TODO : CHANGE
-}
-
-Material const & Mesh::getMaterial() const {
-    return mat;
-}
-
-*/
-
 const glm::vec3 & Mesh::getFaceNormal(size_t idx) const {
     return FaceNormals[idx];
 }
 
-
-/*
-* Setters
-
-void Mesh::setColor(float r, float g, float b) {
-    mat.setDiffuse(Color(r, g, b));
-}
-*/
 
 
 /*
@@ -138,6 +106,6 @@ void printMesh(const Mesh & mesh) {
     std::cout << "\n\n\n";
     printMeshEdges(mesh);
     std::cout << "\n\n\n";
-    std::cout << "Material idx for this mesh : " << mesh.matIdx;
+    std::cout << "Material idx for this mesh HOST : " << mesh.matIdx;
     std::cout << "\n\n\n";
 }
