@@ -58,12 +58,14 @@ void Object::CreateMeshes(aiNode * node, const aiScene * scene) {
 Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene) {
     Mesh meshlcl;
     for (size_t i = 0; i < mesh->mNumVertices; ++i) {
+        
+        //DOES NOT WORK FOR OBJ FILES
+        // SEE BELOW
         // y,z flipped in obj format
         // y in obj is mirrored, so we multiply by -1
-        glm::vec3 pos(mesh->mVertices[i].x,
-            -1 * mesh->mVertices[i].z, mesh->mVertices[i].y);
-        glm::vec3 norm(mesh->mNormals[i].x,
-            -1 * mesh->mNormals[i].z, mesh->mNormals[i].y);
+        // ALSO CHECK PREVIOUS GIT HISTORY FOR MORE INFO
+        glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+        glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         glm::vec2 TQ = glm::vec2(0, 0);
         if (mesh->mTextureCoords[0]) {
             TQ = glm::vec2(mesh->mTextureCoords[0][i].x,

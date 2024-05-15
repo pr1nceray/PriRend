@@ -12,6 +12,8 @@ struct MatGpu{
     
     __device__ explicit MatGpu() = default;
     TextInfo * diffuse;
+    __device__ float * diffuseAtPoint(const CollisionInfo * hitLoc, const glm::vec2 * PointA,
+    const glm::vec2 * PointB, const glm::vec2 * PointC) const ;
 };
 
 struct MeshGpu {

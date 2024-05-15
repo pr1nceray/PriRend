@@ -19,8 +19,11 @@ struct GpuInfo {
     size_t meshLen;
 
     MatGpu * matDev;
-    void * matBuffer;
     size_t matLen;
+
+    float * textureBuffer;
+    TextInfo * textureInfo;
+    size_t textLen;
 
     GpuInfo() = default; 
 
@@ -70,5 +73,5 @@ inline void handleCudaError(cudaError err) {
 __global__ void printMeshInfo(GpuInfo inf);
 __global__ void printMeshInfo(GpuInfo * inf);
 __global__ void printMeshGlobal();
-
+__global__ void printMaterialInfo();
 __device__ extern GpuInfo * sceneInfo;

@@ -20,7 +20,7 @@ struct Mesh {
     std::vector<glm::ivec3> Faces; //potentially uneeded since only used for normal creation
     std::vector<glm::vec3> FaceNormals;
     std::vector<glm::vec3> EdgeMap;
-    std::vector<size_t> mats; //material map
+    std::vector<size_t> mats; // material map
 
     explicit Mesh() = default;
 

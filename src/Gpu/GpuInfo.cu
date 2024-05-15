@@ -84,22 +84,15 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     size_t textureBuffSize = sumTextArr(matMap);
     size_t textureInfoSize = sumTextInfoSize(matMap);
     size_t materialBuffSize = sumMatArr(matIn);
-    
     std::unordered_map<uintptr_t, TextInfo *> textureTranslate;
-
-
-    float * textBuff;
-    MatGpu * matInfo;
-    TextInfo * textInfo;
-
-    handleCudaError(cudaMalloc((void **)&textBuff, textureBuffSize)); //malloc the raw texture data buffer
-    handleCudaError(cudaMalloc((void **)&textInfo, textureInfoSize)); //malloc the other info (ptr to data, size, width)
-    handleCudaError(cudaMalloc((void **)&matInfo, materialBuffSize));
+    handleCudaError(cudaMalloc((void **)&textureBuffer, textureBuffSize)); //malloc the raw texture data buffer
+    handleCudaError(cudaMalloc((void **)&textureInfo, textureInfoSize)); //malloc the other info (ptr to data, size, width)
+    handleCudaError(cudaMalloc((void **)&matDev, materialBuffSize));
 
     //copy over the buffers
     MatGpu * matHost = new MatGpu[matIn.size()];
     TextInfo * textHost = new TextInfo[matMap.size()];
-    void * textStart = textBuff;
+    void * textStart = textureBuffer;
 
     // NOTE : slow due the amount of calls to cudaMemcpy
     // possible improvement : use a vector of floats instead of map
@@ -118,8 +111,8 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
         idx++;
     }
     // copy over textureInfo buffer
-    handleCudaError(cudaMemcpy(textInfo, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
-
+    handleCudaError(cudaMemcpy(textureBuffer, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
+    textLen = matMap.size();
     for (size_t i = 0; i < matIn.size(); i++) {
         auto it = textureTranslate.find(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()));
         if (it == textureTranslate.end()) {
@@ -127,9 +120,8 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
         }
         matHost[i].diffuse = it->second;
     }
-
-    handleCudaError(cudaMemcpy(matInfo, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
-    
+    handleCudaError(cudaMemcpy(matDev, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
+    matLen = matIn.size();
     //free what we no longer need
     delete[] matHost;
     delete[] textHost;
@@ -144,6 +136,9 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
  __host__ void GpuInfo::freeResources() {
     cudaFree(infoBuffer);
     cudaFree(meshDev);
+    cudaFree(matDev);
+    cudaFree(textureBuffer);
+    cudaFree(textureInfo);
     cudaFree(sceneInfo);
  }
 
@@ -311,5 +306,16 @@ __global__ void printMeshGlobal() {
         printMeshNormals(&cur);
         printMeshEdges(&cur);
         printMeshVertexs(&cur);
+    }
+}
+
+__global__ void printMaterialInfo() {
+
+    for (size_t i = 0; i < sceneInfo->matLen; ++i) {
+        printf("Printing for material : %d \n", i);
+        printf("Width : %d Height : %d Texture Address : %p \n",
+        sceneInfo->matDev[i].diffuse->width, 
+        sceneInfo->matDev[i].diffuse->height, 
+        sceneInfo->matDev[i].diffuse->arr);
     }
 }

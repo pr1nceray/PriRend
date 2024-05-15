@@ -28,7 +28,8 @@ class Scene
             }
         }
         GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
-        printMeshGlobal<<<1,1,1>>>();
+        printMeshGlobal<<<1,1>>>();
+        printMaterialInfo<<<1,1>>>();
         return temp;
     }
     
