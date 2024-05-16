@@ -11,9 +11,9 @@ __device__ float *MatGpu::diffuseAtPoint(const CollisionInfo * hitLoc) const {
     const glm::vec2 * PointB = hitLoc->TQB;
     const glm::vec2 * PointC = hitLoc->TQC;
 
-
     size_t idx = static_cast<size_t>(((w * PointA->x + u * PointB->x + v * PointC->x) * diffuse->width) + .5f);
     size_t idy = static_cast<size_t>(((w * PointA->y + u * PointB->y + v * PointC->y) * diffuse->height) + .5f);
+    
     int one_d_idx = (idy * diffuse->width + idx) * CHANNEL;
     return (diffuse->arr + one_d_idx);
 }

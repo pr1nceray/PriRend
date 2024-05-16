@@ -164,7 +164,7 @@ __global__ void spawnRay(int seed, uint8_t * colorArr) {
         
         // ANTI ALIASING!
         u += generateRandomFloatD(&randState) * delta_u;
-        u += generateRandomFloatD(&randState) * delta_v;
+        v += generateRandomFloatD(&randState) * delta_v;
 
         Final += traceRay(u, v, &randState);
     }
@@ -206,7 +206,7 @@ __global__ void spawnRayProgressive(int seed, float * colorArr) {
     float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
 
     u += generateRandomFloatD(&randState) * delta_u;
-    u += generateRandomFloatD(&randState) * delta_v;
+    v += generateRandomFloatD(&randState) * delta_v;
 
     Color Final = traceRay(u, v, &randState);
 

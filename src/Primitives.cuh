@@ -21,7 +21,7 @@ const int CHANNEL = 3;
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 8192;
+const int SPP = 1024;
 const int BOUNCES = 1;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;

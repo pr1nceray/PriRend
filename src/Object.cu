@@ -77,8 +77,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
     // note : doesnt work for materials that have no diffuse but are still valid
     // consider expanding upon this later?
     aiString tmp = scene->mMaterials[0]->GetName();
-    if(scene->mNumMaterials == 0 
-    || scene->mMaterials[0]->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
+    if(scene->mNumMaterials == 0 || scene->mMaterials[0]->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
         meshlcl.matIdx = 0;
     }
     else{
@@ -88,7 +87,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
     for (size_t i = 0; i < mesh->mNumFaces; ++i) {
         aiFace face_add = mesh->mFaces[i];
         glm::ivec3 index_for_face;
-        // Gaurenteed <= 3 vertexes due to assimp option above.
+
         index_for_face.x = face_add.mIndices[0];
         index_for_face.y = face_add.mIndices[1];
         index_for_face.z = face_add.mIndices[2];
