@@ -28,14 +28,23 @@ class Scene
             }
         }
         GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
-        printMeshGlobal<<<1,1>>>();
-        printMaterialInfo<<<1,1>>>();
+        // printMeshGlobal<<<1,1>>>();
+        // printMaterialInfo<<<1,1>>>();
         return temp;
     }
     
-    
+    void freeAllMaterials() {
+        for(auto it : Material::getTextures()) {
+            delete[] it.second->arr; // free information.
+            delete it.second; // delete textureinfo ptr
+        }
+    }
+
     public:
 
+    Scene() {
+        setDefaultMat();
+    }
     void render() {
         GpuInfo gpu = prepareMesh();
         cam.drawProgressive();
@@ -46,6 +55,12 @@ class Scene
     Object & add_object(std::string obj_name) {
         Scene_Objects.push_back(Object(obj_name, sceneMats));
         return Scene_Objects.back();
+    }
+    
+    void setDefaultMat() {
+        Material mat;
+        mat.loadDiffuse("Textures/defaultTexture.png");
+        sceneMats.push_back(mat);
     }
 
     std::vector<Object> & getObjects() {

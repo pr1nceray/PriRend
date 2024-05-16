@@ -112,6 +112,10 @@ void Object::CreateMaterials(const aiScene * scene, std::vector<Material> & mate
 
 void Object::processDiffuse(const aiMaterial * mat, std::vector<Material> & materials) {
     Material matToAdd;
+    if(mat->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
+        return;
+    }
+    
     for(size_t i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i){
         if(i >= 1) {
             throw std::runtime_error("Unable to process current object; Material has more than 1 diffuse texture");

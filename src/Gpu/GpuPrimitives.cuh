@@ -3,6 +3,7 @@
 #include <device_launch_parameters.h>
 #include <curand.h>
 #include <curand_kernel.h>
+#include <stdio.h>
 #include <glm/vec3.hpp>
 #include "../Primitives.cuh"
 
@@ -12,8 +13,7 @@ struct MatGpu{
     
     __device__ explicit MatGpu() = default;
     TextInfo * diffuse;
-    __device__ float * diffuseAtPoint(const CollisionInfo * hitLoc, const glm::vec2 * PointA,
-    const glm::vec2 * PointB, const glm::vec2 * PointC) const ;
+   __device__ float *diffuseAtPoint(const CollisionInfo * hitLoc) const  ;
 };
 
 struct MeshGpu {
@@ -32,3 +32,5 @@ struct MeshGpu {
     __device__ MatGpu const & getMaterial() const;
     __device__ const glm::vec3 & getFaceNormal(size_t idx) const;
 };
+
+__device__ void printTextures(TextInfo * text);

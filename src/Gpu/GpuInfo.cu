@@ -314,10 +314,11 @@ __global__ void printMeshGlobal() {
 __global__ void printMaterialInfo() {
 
     for (size_t i = 0; i < sceneInfo->matLen; ++i) {
-        printf("Printing for material : %d \n", i);
+        printf("Printing for material : %d \n", static_cast<int>(i));
         printf("Width : %d Height : %d Texture Address : %p \n",
         sceneInfo->matDev[i].diffuse->width, 
         sceneInfo->matDev[i].diffuse->height, 
         sceneInfo->matDev[i].diffuse->arr);
+        printTextures(sceneInfo->matDev[i].diffuse);
     }
 }

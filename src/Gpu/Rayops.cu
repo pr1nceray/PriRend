@@ -45,10 +45,10 @@ __device__ bool intersectsMesh(const MeshGpu * mesh, const Ray & ray, CollisionI
         const glm::vec3 & PointA = mesh->vertexBuffer[mesh->faceBuff[i].x].Pos;
         const glm::vec3 & Edge1 = mesh->edgeBuff[(i * 2)]; //edge one
         const glm::vec3 & Edge2 = mesh->edgeBuff[(i * 2) + 1]; //edge two
-
         if(intersectsTri(ray, PointA, Edge1, Edge2, closestFace)) {
             changed = true;
             closestFace->faceIdx = static_cast<int>(i);
+            
         }
     }
     return changed;
@@ -76,7 +76,6 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
     Color final = Color(0.0f, 0.0f, 0.0f);
     CollisionInfo collide;
     const MeshGpu * curMesh;
-    const glm::vec3 * normal;
     float factor = 1.0f;
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray);
@@ -88,8 +87,11 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
 
         curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
 
+        collide.TQA = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x].TQ;
+        collide.TQB = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y].TQ;
+        collide.TQC = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z].TQ;
 
-        // random direction
+        return Color(sceneInfo->matDev[curMesh->matIdx].diffuseAtPoint(&collide));
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
         ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
         collide.meshIdx = -1;

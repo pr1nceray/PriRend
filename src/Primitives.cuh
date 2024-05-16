@@ -14,15 +14,15 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 1280;
-const int HEIGHT = 960;
+const int WIDTH = 640;
+const int HEIGHT = 640;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 128;
-const int BOUNCES = 16;
+const int SPP = 8192;
+const int BOUNCES = 1;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -41,6 +41,9 @@ struct TextInfo {
 
 struct CollisionInfo {
     glm::vec2 CollisionPoint;
+    glm::vec2 * TQA;
+    glm::vec2 * TQB;
+    glm::vec2 * TQC;
     float distanceMin;
     int faceIdx;
     int meshIdx;

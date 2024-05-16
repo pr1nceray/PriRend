@@ -49,5 +49,6 @@ class Material {
 
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
     void convert(uint8_t * source, size_t max, float * out);
+    void flipImage(uint8_t *imageData, size_t width, size_t height);
 };
 

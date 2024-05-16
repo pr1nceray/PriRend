@@ -3,16 +3,18 @@
 /*
 * Chunky function ngl
 */
-__device__ float * MatGpu::diffuseAtPoint(const CollisionInfo * hitLoc, const glm::vec2 * PointA,
-    const glm::vec2 * PointB, const glm::vec2 * PointC) const {
+__device__ float *MatGpu::diffuseAtPoint(const CollisionInfo * hitLoc) const {
     const float u = hitLoc->CollisionPoint.x;
     const float v = hitLoc->CollisionPoint.y;
-    const float w = 1 - hitLoc->CollisionPoint.x - hitLoc->CollisionPoint.y;
+    const float w = 1 - (hitLoc->CollisionPoint.x + hitLoc->CollisionPoint.y);
+    const glm::vec2 * PointA = hitLoc->TQA;
+    const glm::vec2 * PointB = hitLoc->TQB;
+    const glm::vec2 * PointC = hitLoc->TQC;
 
-    float idx = (w * PointA->x + u * PointB->x + v * PointC->x) * WIDTH;
-    float idy = (w * PointA->y + u * PointB->y + v * PointC->y)  * HEIGHT;
 
-    int one_d_idx = static_cast<int>(idy * diffuse->width * CHANNEL + idx);
+    size_t idx = static_cast<size_t>(((w * PointA->x + u * PointB->x + v * PointC->x) * diffuse->width) + .5f);
+    size_t idy = static_cast<size_t>(((w * PointA->y + u * PointB->y + v * PointC->y) * diffuse->height) + .5f);
+    int one_d_idx = (idy * diffuse->width + idx) * CHANNEL;
     return (diffuse->arr + one_d_idx);
 }
 
@@ -36,4 +38,22 @@ __device__ Ray MeshGpu::generateReflectiveVecOnFace(const size_t faceIdx, const 
     const glm::vec3 newDir = dir - (2 * glm::dot(normal, dir) * normal);
     const glm::vec3 newOrigin = origin + (newDir * .01f); // avoid shadow acne
     return Ray(newOrigin, newDir);
+}
+
+
+__device__ void printTextures(TextInfo * text) {
+    printf("P3\n");
+    printf("%d %d\n", text->width, text->height);
+    printf("255\n");
+    for(size_t i = 0; i < text->height; ++i) {
+        for(size_t j = 0; j < text->width; ++j) {
+            size_t idx = CHANNEL * ((i * text->width) + j);
+            uint8_t r = text->arr[idx]>1?255:static_cast<uint8_t>(255 * text->arr[idx]);
+            uint8_t g = text->arr[idx + 1]>1?255:static_cast<uint8_t>(255 * text->arr[idx + 1]);
+            uint8_t b = text->arr[idx + 2]>1?255:static_cast<uint8_t>(255 * text->arr[idx + 2]);
+            printf("%d %d %d ", r, g, b);
+
+        }
+        printf("\n");
+    }
 }
