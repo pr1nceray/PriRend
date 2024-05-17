@@ -182,7 +182,7 @@ void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, M
 
 void GpuInfo::copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) {
-        meshHost[i].matIdx = meshIn[i].matIdx;
+        meshHost[i].matIdx = meshIn[i].diffIdx;
     }
 }
 /*

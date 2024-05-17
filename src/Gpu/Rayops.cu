@@ -91,7 +91,9 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         collide.TQB = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y].TQ;
         collide.TQC = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z].TQ;
 
-        return Color(sceneInfo->matDev[curMesh->matIdx].diffuseAtPoint(&collide));
+        shaderInfo tmp;
+        return Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &tmp));
+
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
         ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
         collide.meshIdx = -1;

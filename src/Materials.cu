@@ -8,17 +8,67 @@ std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
 const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
     return currentMaterials;
 }
-void Material::loadDiffuse(const std::string & fileName) {
-    Diffuse = checkInScene(fileName);
+
+void Material::setBasic(Color c, aiTextureType type) {
+    switch (type) {
+        case (aiTextureType_DIFFUSE) : {
+            diffBasicColor = c;
+            diffBasic = true;
+            break;
+        }
+        case(aiTextureType_NORMALS) : {
+            normalBasicColor = c;
+            NormalBasic = true;
+            break;
+        }
+        case(aiTextureType_SPECULAR) : {
+            SpecularBasicColor = c;
+            SpecularBasic = true;
+            break;
+        }
+        case(aiTextureType_METALNESS) : {
+            MetallicBasicColor = c;
+            MetallicBasic = true;
+            break;
+        }
+        case(aiTextureType_DIFFUSE_ROUGHNESS) : {
+            RoughnessBasicColor = c;
+            RoughnessBasic = true;
+            break;
+        }
+        default : { 
+            throw std::runtime_error("Found unknown basic texture type");
+        }
+    }
+}
+void Material::loadTexture(const std::string & fileName, aiTextureType type) {
+    switch (type) {
+        case (aiTextureType_DIFFUSE) : {
+            Diffuse = checkInScene(fileName);
+            break;
+        }
+        case(aiTextureType_NORMALS) : {
+            Normal = checkInScene(fileName);
+            break;
+        }
+        case(aiTextureType_SPECULAR) : {
+            Specular = checkInScene(fileName);
+            break;
+        }
+        case(aiTextureType_METALNESS) : {
+            Metallic = checkInScene(fileName);
+            break;
+        }
+        case(aiTextureType_DIFFUSE_ROUGHNESS) : {
+            Roughness = checkInScene(fileName);
+            break;
+        }
+        default : { 
+            throw std::runtime_error("Found unknown texture type");
+        }
+    }
 }
 
-void Material::loadNormal(const std::string & fileName) {
-    Normal = checkInScene(fileName);
-}
-
-void Material::loadSpecular(const std::string & fileName) {
-    Specular = checkInScene(fileName);
-}
 
 TextInfo Material::loadImage(const std::string & fileName) {
     int width, height, numChannel;
@@ -31,6 +81,7 @@ TextInfo Material::loadImage(const std::string & fileName) {
     convert(imageData, width * height * 3, newImageData);
     stbi_image_free(imageData);
     return TextInfo{newImageData, width, height};
+
 }
 
 TextInfo *Material::checkInScene(const std::string & fileName) {
@@ -66,3 +117,4 @@ void Material::flipImage(uint8_t *imageData, size_t width, size_t height) {
 const TextInfo * Material::getDiffuse() const {
     return Diffuse;
 }
+

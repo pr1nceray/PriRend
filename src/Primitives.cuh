@@ -14,8 +14,8 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 640;
-const int HEIGHT = 640;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
@@ -27,6 +27,8 @@ const int BOUNCES = 1;
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
 
+const float pi = 3.1415926535;
+
 struct Vertex {
     glm::vec3 Pos;
     glm::vec3 Normal;
@@ -37,6 +39,8 @@ struct TextInfo {
     float * arr;
     int width;
     int height;
+    bool basic;
+    float basicColor[3];
 };
 
 struct CollisionInfo {

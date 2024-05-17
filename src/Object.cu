@@ -71,18 +71,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
         meshlcl.Indicies.push_back(Vertex{pos, norm, TQ});
     }
 
-    //0 mats 
-    //OR the scene (which should only have one material) has no diffuse
-    //set the material to be index 0.
-    // note : doesnt work for materials that have no diffuse but are still valid
-    // consider expanding upon this later?
-    aiString tmp = scene->mMaterials[0]->GetName();
-    if(scene->mNumMaterials == 0 || scene->mMaterials[0]->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
-        meshlcl.matIdx = 0;
-    }
-    else{
-        meshlcl.matIdx = baseMatIdx + static_cast<size_t>(mesh->mMaterialIndex); 
-    }
+    meshlcl.MaterialIdx = baseMatIdx + static_cast<size_t>(mesh->mMaterialIndex); 
 
     for (size_t i = 0; i < mesh->mNumFaces; ++i) {
         aiFace face_add = mesh->mFaces[i];
@@ -105,23 +94,35 @@ void Object::CreateMaterials(const aiScene * scene, std::vector<Material> & mate
     }
 
     for (size_t i = 0; i < scene->mNumMaterials; ++ i) {
-        processDiffuse(scene->mMaterials[i], materials);
+        processMaterials(scene->mMaterials[i], materials);
     }
 }
 
-void Object::processDiffuse(const aiMaterial * mat, std::vector<Material> & materials) {
+void Object::processMaterials(const aiMaterial * mat, std::vector<Material> & materials) {
     Material matToAdd;
-    if(mat->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
-        return;
+    Color white = Color(1.0f, 1.0f, 1.0f);
+    Color roughness = Color(.5f, .5f, .5f);
+    Color black = Color();
+    checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE, white);
+    checkBasic(&matToAdd, mat, aiTextureType_NORMALS, black);
+    checkBasic(&matToAdd, mat, aiTextureType_SPECULAR, black);
+    checkBasic(&matToAdd, mat, aiTextureType_METALNESS, black);
+    checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE_ROUGHNESS, black);
+
+}
+void Object::checkBasic(Material * mat, const aiMaterial * matptr, aiTextureType type, Color c) {
+    if(matptr->GetTextureCount(type) == 0) {
+        mat->setBasic(c, type);
     }
-    
-    for(size_t i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i){
+    processTextures(mat, matptr, type);
+}
+void Object::processTextures(Material * matToAdd, const aiMaterial * matptr, aiTextureType type) {
+    for(size_t i = 0; i < matptr->GetTextureCount(type); ++i){
         if(i >= 1) {
-            throw std::runtime_error("Unable to process current object; Material has more than 1 diffuse texture");
+            throw std::runtime_error("Unable to process current object; Material has more than 1 of the same kind of texture");
         }
         aiString str;
-        mat->GetTexture(aiTextureType_DIFFUSE, i, &str);
-        matToAdd.loadDiffuse(str.C_Str());
+        matptr->GetTexture(aiTextureType_DIFFUSE, i, &str);
+        matToAdd->loadTexture(str.C_Str(), type);
     }
-    materials.push_back(matToAdd);
 }

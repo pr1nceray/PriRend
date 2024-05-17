@@ -7,13 +7,33 @@
 #include <glm/vec3.hpp>
 #include "../Primitives.cuh"
 
-
+/*
+* Used for parameter passing
+*/
+struct shaderInfo {
+    __device__ void setRequired(const Ray * rayIn, const Ray * rayOut, const glm::vec3 * normal);
+    glm::vec3 h;
+    float ndotw_in;
+    float ndotw_out;
+    float hdotw_in;
+    float hdotw_out;
+    float ndotw_out_pow5;
+    float ndotw_in_pow5;
+};
 
 struct MatGpu{
-    
     __device__ explicit MatGpu() = default;
+    __device__ glm::vec2 getIdx(const CollisionInfo * hitLoc) const;
+    __device__ size_t getTextureIdx(TextInfo * inf, glm::vec2 * idx) const;
+    __device__ float * getTextureColor(TextInfo * inf, glm::vec2 * idx) const;
+    __device__ float * colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
+    __device__ float baseDiffuse(glm::vec2 * idx, const shaderInfo * info) const;
+    __device__ float baseSubsurface(glm::vec2 * idx, const shaderInfo * info) const;
     TextInfo * diffuse;
-   __device__ float *diffuseAtPoint(const CollisionInfo * hitLoc) const  ;
+    TextInfo * normals;
+    TextInfo * metallic;
+    TextInfo * specular;
+    TextInfo * roughness;
 };
 
 struct MeshGpu {

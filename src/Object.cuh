@@ -45,9 +45,8 @@ class Object {
     void CreateMeshes(aiNode * node, const aiScene * scene, size_t baseMatIdx);
     Mesh processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx);
 
-
-
-
     void CreateMaterials(const aiScene * scene, std::vector<Material> & material);
-    void processDiffuse(const aiMaterial * mat, std::vector<Material> & materials);
+    void processMaterials(const aiMaterial * mat, std::vector<Material> & materials);
+    void processTextures(Material * matToAdd, const aiMaterial * matptr, aiTextureType type);
+    void checkBasic(Material * matToAdd, const aiMaterial * matptr, aiTextureType type, Color c);
 };

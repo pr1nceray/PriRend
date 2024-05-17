@@ -43,7 +43,6 @@ class Scene
     public:
 
     Scene() {
-        setDefaultMat();
     }
     void render() {
         GpuInfo gpu = prepareMesh();
@@ -57,11 +56,6 @@ class Scene
         return Scene_Objects.back();
     }
     
-    void setDefaultMat() {
-        Material mat;
-        mat.loadDiffuse("Textures/defaultTexture.png");
-        sceneMats.push_back(mat);
-    }
 
     std::vector<Object> & getObjects() {
         return Scene_Objects;
