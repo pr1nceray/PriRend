@@ -34,51 +34,45 @@ class Scene
     }
     
     void freeAllMaterials() {
-        // deletes the image textures
+        // deletes the basic textures
+        for (auto it : sceneMats) {
+            freeBasic(it.getDiffuse());
+            freeBasic(it.getNormal());
+            freeBasic(it.getSpecular());
+            freeBasic(it.getMetallic());
+            freeBasic(it.getRoughness());
+        }
+
+        // delete the image textures that we allocated
         for (auto it : Material::getTextures()) {
             delete[] it.second->arr; // free information.
             delete it.second; // delete textureinfo ptr
         }
-        for (auto it : sceneMats) {
-            if (it.getDiffuse()->basic) {
-                delete it.getDiffuse();
-            }
-            if (it.getNormal()->basic) {
-                delete it.getNormal();
-            }
-            if (it.getSpecular()->basic) {
-                delete it.getSpecular();
-            }
-            if (it.getMetallic()->basic) {
-                delete it.getMetallic();
-            }
-            if (it.getRoughness()->basic) {
-                delete it.getRoughness();
-            }
-        }
     }
+
+    void freeBasic(const TextInfo * ptr) {
+        if(ptr->basic) {
+            delete ptr;
+        }
+    } 
 
     public:
-
-    Scene() {
-    }
-
+    explicit Scene() = default;
     ~Scene() {
         freeAllMaterials();
     }
+
     void render() {
         GpuInfo gpu = prepareMesh();
         cam.drawProgressive();
         gpu.freeResources();
     }
 
-
     Object & add_object(std::string obj_name) {
         Scene_Objects.push_back(Object(obj_name, sceneMats));
         return Scene_Objects.back();
     }
     
-
     std::vector<Object> & getObjects() {
         return Scene_Objects;
     }

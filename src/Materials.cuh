@@ -19,9 +19,13 @@
 */
 class Material {
     public:
-    explicit Material()  : 
-    Diffuse(nullptr), Normal(nullptr), Specular(nullptr), 
-    Metallic(nullptr), Roughness(nullptr) {
+    explicit Material() {
+        for(size_t i = 0; i < 5; ++i) {
+            textures[i] = nullptr;
+        }
+        for(size_t i = 0; i < 5; ++i) {
+            texturesDev[i] = nullptr;
+        }
     }
 
     static const std::unordered_map<std::string, TextInfo *> & getTextures();
@@ -47,28 +51,16 @@ class Material {
     TextInfo *checkInScene(const std::string & fileName);
 
     /*
-    * The boolean and Color values here could be stored 
-    * Inside the textInfo object. However, this would mean
-    * Allocating memory for the textuinfo object ahead of time(constructor)
-    * which would defeat the purpouse of sharing TextInfo ptr
-    * You could theoretically allocate memory on launch
-    * then delete it when overwriting it, but that just seems
-    * like its too much work considering the added memory complexity
-    * 
-    * 
-    * Smarter Option : just check if the textInfo is in the map(allptrs or sumn see materials.cu)
-    * and dont copy the textInfo's that have a value of <= 0.
+    * Order of materials : 
+    * Diffuse, Normal, Specular, Metallic, Roughness
+    * TexturesDev is textures, but on the gpu.
     */
-    TextInfo *Diffuse;
-    TextInfo *Normal;
-    TextInfo *Specular;
-    TextInfo *Metallic;
-    TextInfo *Roughness;
+    TextInfo * textures[5];
+    TextInfo * texturesDev[5];
 
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
     void convert(uint8_t * source, size_t max, float * out);
     void flipImage(uint8_t *imageData, size_t width, size_t height);
-    void checkInMap(TextInfo * texture);
     void setColorToTextInfo(Color & c, TextInfo * texture);
 };
 

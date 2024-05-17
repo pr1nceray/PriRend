@@ -59,6 +59,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
         // y,z flipped in obj format
         // y in obj is mirrored, so we multiply by -1
         // ALSO CHECK PREVIOUS GIT HISTORY FOR MORE INFO
+
         glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         glm::vec2 TQ = glm::vec2(0.0f, 0.0f);
@@ -107,6 +108,7 @@ void Object::processMaterials(const aiMaterial * mat, std::vector<Material> & ma
     checkBasic(&matToAdd, mat, aiTextureType_SPECULAR, black);
     checkBasic(&matToAdd, mat, aiTextureType_METALNESS, black);
     checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE_ROUGHNESS, black);
+    materials.push_back(matToAdd);
 
 }
 void Object::checkBasic(Material * mat, const aiMaterial * matptr, aiTextureType type, Color c) {

@@ -4,75 +4,37 @@
 
 std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
 
+// quick way to map aiTextureType enum to size_t
+const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
+{aiTextureType_DIFFUSE, 0}, {aiTextureType_NORMALS, 1}, {aiTextureType_SPECULAR, 2}, 
+{aiTextureType_METALNESS, 3},  {aiTextureType_DIFFUSE_ROUGHNESS, 4}};
+
 const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
     return currentMaterials;
 }
 
 void Material::setBasic(Color c, aiTextureType type) {
-    switch (type) {
-        case (aiTextureType_DIFFUSE) : {
-            Diffuse = new TextInfo();
-            setColorToTextInfo(c, Diffuse);
-            break;
-        }
-        case(aiTextureType_NORMALS) : {
-            Normal = new TextInfo();
-            setColorToTextInfo(c, Normal);
-            break;
-        }
-        case(aiTextureType_SPECULAR) : {
-            Specular = new TextInfo();
-            setColorToTextInfo(c, Specular);
-            break;
-        }
-        case(aiTextureType_METALNESS) : {
-            Metallic = new TextInfo();
-            setColorToTextInfo(c, Metallic);;
-            break;
-        }
-        case(aiTextureType_DIFFUSE_ROUGHNESS) : {
-            Roughness = new TextInfo();
-            setColorToTextInfo(c, Roughness);
-            break;
-        }
-        default : { 
-            throw std::runtime_error("Found unknown basic texture type");
-        }
+    auto it = textureEnumToIndex.find(type);
+    if(it == textureEnumToIndex.end()) {
+        throw std::runtime_error("Attempting to load a basic texture of unknown type");
     }
-}
-void Material::loadTexture(const std::string & fileName, aiTextureType type) {
-    switch (type) {
-        case (aiTextureType_DIFFUSE) : {
-            checkInMap(Diffuse);
-            Diffuse = checkInScene(fileName);
-            break;
-        }
-        case(aiTextureType_NORMALS) : {
-            checkInMap(Normal);
-            Normal = checkInScene(fileName);
-            break;
-        }
-        case(aiTextureType_SPECULAR) : {
-            checkInMap(Specular);
-            Specular = checkInScene(fileName);
-            break;
-        }
-        case(aiTextureType_METALNESS) : {
-            checkInMap(Metallic);
-            Metallic = checkInScene(fileName);
-            break;
-        }
-        case(aiTextureType_DIFFUSE_ROUGHNESS) : {
-            checkInMap(Roughness);
-            Roughness = checkInScene(fileName);
-            break;
-        }
-        default : { 
-            throw std::runtime_error("Found unknown texture type");
-        }
+    if(textures[it->second] != nullptr) {
+        throw std::runtime_error("Attempting to set a texture to basic when it already has a value.");
     }
+    textures[it->second] = new TextInfo();
+    setColorToTextInfo(c, textures[it->second]);
 }
 
+void Material::loadTexture(const std::string & fileName, aiTextureType type) {
+    auto it = textureEnumToIndex.find(type);
+    if(it == textureEnumToIndex.end()) {
+        throw std::runtime_error("Attempting to load an image texture of unknown type");
+    }
+    if(textures[it->second] != nullptr) {
+        throw std::runtime_error("Attempting to set a texture to Loaded image when it already has a value.");
+    }
+    textures[it->second] = checkInScene(fileName);
+}
 
 TextInfo Material::loadImage(const std::string & fileName) {
     int width, height, numChannel;
@@ -85,7 +47,6 @@ TextInfo Material::loadImage(const std::string & fileName) {
     convert(imageData, width * height * 3, newImageData);
     stbi_image_free(imageData);
     return TextInfo{newImageData, width, height};
-
 }
 
 TextInfo *Material::checkInScene(const std::string & fileName) {
@@ -119,25 +80,24 @@ void Material::flipImage(uint8_t *imageData, size_t width, size_t height) {
 }
 
 const TextInfo * Material::getDiffuse() const {
-    return Diffuse;
+    return textures[0];
 }
 
 const TextInfo * Material::getNormal() const {
-    return Normal;
+    return textures[1];
 }
 
 const TextInfo * Material::getSpecular() const {
-    return Specular;
+    return textures[2];
 }
 
 const TextInfo * Material::getMetallic() const {
-    return Metallic;
+    return textures[3];
 }
 
 const TextInfo * Material::getRoughness() const {
-    return Roughness;
+    return textures[4];
 }
-
 
 void Material::setColorToTextInfo(Color & c, TextInfo * texture) {
     texture->basic = true;
