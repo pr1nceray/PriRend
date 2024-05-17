@@ -1,7 +1,6 @@
 #include "./Materials.cuh"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include <iostream>
 
 std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
 
@@ -12,28 +11,28 @@ const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
 void Material::setBasic(Color c, aiTextureType type) {
     switch (type) {
         case (aiTextureType_DIFFUSE) : {
-            diffBasicColor = c;
-            diffBasic = true;
+            Diffuse = new TextInfo();
+            setColorToTextInfo(c, Diffuse);
             break;
         }
         case(aiTextureType_NORMALS) : {
-            normalBasicColor = c;
-            NormalBasic = true;
+            Normal = new TextInfo();
+            setColorToTextInfo(c, Normal);
             break;
         }
         case(aiTextureType_SPECULAR) : {
-            SpecularBasicColor = c;
-            SpecularBasic = true;
+            Specular = new TextInfo();
+            setColorToTextInfo(c, Specular);
             break;
         }
         case(aiTextureType_METALNESS) : {
-            MetallicBasicColor = c;
-            MetallicBasic = true;
+            Metallic = new TextInfo();
+            setColorToTextInfo(c, Metallic);;
             break;
         }
         case(aiTextureType_DIFFUSE_ROUGHNESS) : {
-            RoughnessBasicColor = c;
-            RoughnessBasic = true;
+            Roughness = new TextInfo();
+            setColorToTextInfo(c, Roughness);
             break;
         }
         default : { 
@@ -44,22 +43,27 @@ void Material::setBasic(Color c, aiTextureType type) {
 void Material::loadTexture(const std::string & fileName, aiTextureType type) {
     switch (type) {
         case (aiTextureType_DIFFUSE) : {
+            checkInMap(Diffuse);
             Diffuse = checkInScene(fileName);
             break;
         }
         case(aiTextureType_NORMALS) : {
+            checkInMap(Normal);
             Normal = checkInScene(fileName);
             break;
         }
         case(aiTextureType_SPECULAR) : {
+            checkInMap(Specular);
             Specular = checkInScene(fileName);
             break;
         }
         case(aiTextureType_METALNESS) : {
+            checkInMap(Metallic);
             Metallic = checkInScene(fileName);
             break;
         }
         case(aiTextureType_DIFFUSE_ROUGHNESS) : {
+            checkInMap(Roughness);
             Roughness = checkInScene(fileName);
             break;
         }
@@ -118,3 +122,26 @@ const TextInfo * Material::getDiffuse() const {
     return Diffuse;
 }
 
+const TextInfo * Material::getNormal() const {
+    return Normal;
+}
+
+const TextInfo * Material::getSpecular() const {
+    return Specular;
+}
+
+const TextInfo * Material::getMetallic() const {
+    return Metallic;
+}
+
+const TextInfo * Material::getRoughness() const {
+    return Roughness;
+}
+
+
+void Material::setColorToTextInfo(Color & c, TextInfo * texture) {
+    texture->basic = true;
+    *(texture->basicColor) = c.r;
+    *(texture->basicColor + 1) = c.g;
+    *(texture->basicColor + 2) = c.b;
+}

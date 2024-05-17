@@ -3,9 +3,10 @@
 #include <device_launch_parameters.h>
 #include <math.h>
 #include <assimp/scene.h>
-
+#include <iostream>
 #include <string>
 #include <stdexcept>
+#include <set>
 #include <unordered_map>
 
 #include <glm/vec3.hpp>
@@ -18,14 +19,13 @@
 */
 class Material {
     public:
-    Material() : 
+    explicit Material()  : 
     Diffuse(nullptr), Normal(nullptr), Specular(nullptr), 
-    Metallic(nullptr), Roughness(nullptr),
-    diffBasic(false), NormalBasic(false), SpecularBasic(false), 
-    MetallicBasic(false), RoughnessBasic(false) {
+    Metallic(nullptr), Roughness(nullptr) {
     }
 
     static const std::unordered_map<std::string, TextInfo *> & getTextures();
+    
     /*
     * Class functions
     */
@@ -36,6 +36,12 @@ class Material {
     */
 
     const TextInfo * getDiffuse() const;
+    const TextInfo * getNormal() const;
+    const TextInfo * getSpecular() const;
+    const TextInfo * getMetallic() const;
+    const TextInfo * getRoughness() const;
+
+
     private :
     TextInfo loadImage(const std::string & fileName);
     TextInfo *checkInScene(const std::string & fileName);
@@ -49,29 +55,20 @@ class Material {
     * then delete it when overwriting it, but that just seems
     * like its too much work considering the added memory complexity
     * 
+    * 
+    * Smarter Option : just check if the textInfo is in the map(allptrs or sumn see materials.cu)
+    * and dont copy the textInfo's that have a value of <= 0.
     */
     TextInfo *Diffuse;
-    bool diffBasic;
-    Color diffBasicColor;
-
     TextInfo *Normal;
-    bool NormalBasic;
-    Color normalBasicColor;
-
     TextInfo *Specular;
-    bool SpecularBasic;
-    Color SpecularBasicColor;
-
     TextInfo *Metallic;
-    bool MetallicBasic;
-    Color MetallicBasicColor;
-
     TextInfo *Roughness;
-    bool RoughnessBasic;
-    Color RoughnessBasicColor;
 
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
     void convert(uint8_t * source, size_t max, float * out);
     void flipImage(uint8_t *imageData, size_t width, size_t height);
+    void checkInMap(TextInfo * texture);
+    void setColorToTextInfo(Color & c, TextInfo * texture);
 };
 

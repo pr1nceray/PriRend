@@ -84,7 +84,6 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
     }
 
     meshlcl.generateNormals();
-    printMesh(meshlcl);
     return meshlcl;
 }
 

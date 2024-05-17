@@ -36,6 +36,11 @@ struct Vertex {
 };
 
 struct TextInfo {
+    TextInfo() : arr(nullptr), basic(true) {
+    }
+    TextInfo(float * arrIn, int widthIn, int heightIn) : 
+    arr(arrIn), width(widthIn), height(heightIn), basic(false){
+    }
     float * arr;
     int width;
     int height;

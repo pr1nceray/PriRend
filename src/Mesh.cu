@@ -106,6 +106,6 @@ void printMesh(const Mesh & mesh) {
     std::cout << "\n\n\n";
     printMeshEdges(mesh);
     std::cout << "\n\n\n";
-    std::cout << "Material idx for this mesh HOST : " << mesh.matIdx;
+    std::cout << "Material idx for this mesh HOST : " << mesh.MaterialIdx;
     std::cout << "\n\n\n";
 }

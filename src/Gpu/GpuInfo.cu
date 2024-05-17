@@ -110,11 +110,11 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
 
     textLen = matMap.size();
     for (size_t i = 0; i < matIn.size(); i++) {
-        auto it = textureTranslate.find(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()));
-        if (it == textureTranslate.end()) {
-            throw std::runtime_error("A material has a texture that we never loaded");
-        }
-        matHost[i].diffuse = it->second;
+        matHost[i].diffuse = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()), textureTranslate);
+        matHost[i].normals = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getNormal()), textureTranslate);
+        matHost[i].specular = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getSpecular()), textureTranslate);
+        matHost[i].metallic = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getMetallic()), textureTranslate);
+        matHost[i].roughness = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getRoughness()), textureTranslate);
     }
     handleCudaError(cudaMemcpy(matDev, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
     matLen = matIn.size();
@@ -123,7 +123,13 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     delete[] textHost;
 }
 
-
+TextInfo * GpuInfo::checkTextureInMap(uintptr_t txthost, const std::unordered_map<uintptr_t, TextInfo *> & textures) {
+    auto it = textures.find(txthost);
+    if (it == textures.end()) {
+            throw std::runtime_error("A material has a texture that we never loaded");
+    }
+    return it->second;
+}
 /*
 * Since there should only be ONE Gpu info class at a time, 
 * and we are destructing, then we should free the resources that
@@ -182,7 +188,7 @@ void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, M
 
 void GpuInfo::copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) {
-        meshHost[i].matIdx = meshIn[i].diffIdx;
+        //meshHost[i].matIdx = meshIn[i].diffIdx;
     }
 }
 /*

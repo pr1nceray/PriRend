@@ -56,6 +56,7 @@ struct GpuInfo {
     size_t sumMatArr(const std::vector<Material> & matIn) const;
     size_t sumTextArr(const std::unordered_map<std::string, TextInfo *> & textures) const;
     size_t sumTextInfoSize(const std::unordered_map<std::string, TextInfo *> & textures) const;
+    TextInfo * checkTextureInMap(uintptr_t txthost, const std::unordered_map<uintptr_t, TextInfo *> & textures);
     /*
     * Internal functions for copying material data
     */

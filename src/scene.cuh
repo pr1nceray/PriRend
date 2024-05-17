@@ -34,15 +34,37 @@ class Scene
     }
     
     void freeAllMaterials() {
-        for(auto it : Material::getTextures()) {
+        // deletes the image textures
+        for (auto it : Material::getTextures()) {
             delete[] it.second->arr; // free information.
             delete it.second; // delete textureinfo ptr
+        }
+        for (auto it : sceneMats) {
+            if (it.getDiffuse()->basic) {
+                delete it.getDiffuse();
+            }
+            if (it.getNormal()->basic) {
+                delete it.getNormal();
+            }
+            if (it.getSpecular()->basic) {
+                delete it.getSpecular();
+            }
+            if (it.getMetallic()->basic) {
+                delete it.getMetallic();
+            }
+            if (it.getRoughness()->basic) {
+                delete it.getRoughness();
+            }
         }
     }
 
     public:
 
     Scene() {
+    }
+
+    ~Scene() {
+        freeAllMaterials();
     }
     void render() {
         GpuInfo gpu = prepareMesh();
