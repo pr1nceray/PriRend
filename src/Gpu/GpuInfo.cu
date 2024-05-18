@@ -79,48 +79,20 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
 
     //copy over the buffers
     MatGpu * matHost = new MatGpu[matIn.size()];
-    void * textStart = textureBuffer;
 
-    // NOTE : slow due the amount of calls to cudaMemcpy
-    // possible improvement : use a vector of floats instead of map
-    // and have one big cudaMemcpy call?
-
-    size_t idx = 0;
-    for(auto it : matMap) {
-        // copy over all textures into texture buffer
-        size_t sizeCpy = CHANNEL * it.second->width * it.second->height;
-        handleCudaError(cudaMemcpy(textStart, it.second->arr, sizeof(float) * sizeCpy, cudaMemcpyHostToDevice));
-        textHost[idx] = *it.second;
-        textHost[idx].arr = static_cast<float *>(textStart); // set array to point to somewhere in raw texture buffer
-        textureTranslate[reinterpret_cast<uintptr_t>(it.second)] = (textureInfo + idx); 
-        textStart = static_cast<void *>(static_cast<float *>(textStart) + sizeCpy); // increment buffer
-        idx++;
-    }
-    // copy over textureInfo buffer
-    handleCudaError(cudaMemcpy((void *)textureInfo, textHost, matMap.size() * sizeof(TextInfo), cudaMemcpyHostToDevice));
-
-    textLen = matMap.size();
     for (size_t i = 0; i < matIn.size(); i++) {
-        matHost[i].diffuse = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getDiffuse()), textureTranslate);
-        matHost[i].normals = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getNormal()), textureTranslate);
-        matHost[i].specular = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getSpecular()), textureTranslate);
-        matHost[i].metallic = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getMetallic()), textureTranslate);
-        matHost[i].roughness = checkTextureInMap(reinterpret_cast<uintptr_t>(matIn[i].getRoughness()), textureTranslate);
+        matHost[i].TextureArr[0] = matIn[i].getGpuTextures()[0];
+        matHost[i].TextureArr[1] = matIn[i].getGpuTextures()[1];
+        matHost[i].TextureArr[2] = matIn[i].getGpuTextures()[2];
+        matHost[i].TextureArr[3] = matIn[i].getGpuTextures()[3];
+        matHost[i].TextureArr[4] = matIn[i].getGpuTextures()[4];
     }
+    
     handleCudaError(cudaMemcpy(matDev, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
     matLen = matIn.size();
-    //free what we no longer need
     delete[] matHost;
-    delete[] textHost;
 }
 
-TextInfo * GpuInfo::checkTextureInMap(uintptr_t txthost, const std::unordered_map<uintptr_t, TextInfo *> & textures) {
-    auto it = textures.find(txthost);
-    if (it == textures.end()) {
-            throw std::runtime_error("A material has a texture that we never loaded");
-    }
-    return it->second;
-}
 /*
 * Since there should only be ONE Gpu info class at a time, 
 * and we are destructing, then we should free the resources that
@@ -130,8 +102,6 @@ TextInfo * GpuInfo::checkTextureInMap(uintptr_t txthost, const std::unordered_ma
     cudaFree(infoBuffer);
     cudaFree(meshDev);
     cudaFree(matDev);
-    cudaFree(textureBuffer);
-    cudaFree(textureInfo);
     cudaFree(sceneInfo);
  }
 
@@ -199,22 +169,6 @@ size_t GpuInfo::sumMeshArr(const std::vector<Mesh> & meshIn) const {
     return sizeof(MeshGpu) * meshIn.size();
 }
 
-/*
-* Size needed to allocate all the textures and their respective textInfo
-* Should be the size of the textInfo buffer and the size of the respective textures
-*/
-size_t GpuInfo::sumTextArr(const std::unordered_map<std::string, TextInfo *> & textures) const {
-    size_t numElem = 0;
-    for (auto it : textures) {
-        numElem += (sizeof(float) * (it.second)->height * (it.second)->width * CHANNEL);
-    }
-    return numElem;
-   
-}
-
-size_t GpuInfo::sumTextInfoSize(const std::unordered_map<std::string, TextInfo *> & textures) const {
-    return sizeof(TextInfo) * textures.size();
-}
 /*
 * Size of all the Materials that is needed
 */
@@ -311,11 +265,11 @@ __global__ void printMeshGlobal() {
 __global__ void printMaterialInfo() {
 
     for (size_t i = 0; i < sceneInfo->matLen; ++i) {
-        printf("Printing for material : %d \n", static_cast<int>(i));
+        printf("Printing Diffuse for material : %d \n", static_cast<int>(i));
         printf("Width : %d Height : %d Texture Address : %p \n",
-        sceneInfo->matDev[i].diffuse->width, 
-        sceneInfo->matDev[i].diffuse->height, 
-        sceneInfo->matDev[i].diffuse->arr);
-        printTextures(sceneInfo->matDev[i].diffuse);
+        sceneInfo->matDev[i].TextureArr[0]->width, 
+        sceneInfo->matDev[i].TextureArr[0]->height, 
+        sceneInfo->matDev[i].TextureArr[0]->arr);
+        printTextures(sceneInfo->matDev[i].TextureArr[0]);
     }
 }

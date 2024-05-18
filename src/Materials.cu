@@ -131,6 +131,9 @@ const TextInfo * Material::getMetallic() const {
 const TextInfo * Material::getRoughness() const {
     return textures[4];
 }
+TextInfo ** Material::getGpuTextures() const {
+    return (TextInfo**)texturesDev;
+}
 
 void Material::setColorToTextInfo(Color & c, size_t idx) {
     textures[idx]->basic = true;

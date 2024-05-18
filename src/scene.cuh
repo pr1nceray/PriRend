@@ -52,11 +52,11 @@ class Scene
         }
 
         for (auto it : Material::getTexturesDelete()) {
-            cudaFree((void *)it);
+            handleCudaError(cudaFree((void *)it));
         }
 
         for (auto it : Material::getTextInfoDelete()) {
-            cudaFree((void *)it);
+            handleCudaError(cudaFree((void *)it));
         }
     }
 

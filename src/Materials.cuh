@@ -46,7 +46,7 @@ class Material {
     const TextInfo * getSpecular() const;
     const TextInfo * getMetallic() const;
     const TextInfo * getRoughness() const;
-
+    TextInfo ** getGpuTextures() const;
 
     private :
     TextInfo loadImage(const std::string & fileName);

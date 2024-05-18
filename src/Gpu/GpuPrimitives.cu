@@ -14,8 +14,6 @@ __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, c
 
 }
 
-
-
  __device__ glm::vec2 MatGpu::getIdx(const CollisionInfo * hitLoc) const {
     const float u = hitLoc->CollisionPoint.x;
     const float v = hitLoc->CollisionPoint.y;
@@ -60,14 +58,14 @@ Bad : getIdx was designed around an image with 3 channels
 * how is roughness stored? is it 1 channel or 3? deference assumes it is 3 channel
 */
 __device__ float MatGpu::baseDiffuse(glm::vec2 * idx, const shaderInfo * info) const {
-    const float FD90 = .5f + (2 * (*getTextureColor(roughness, idx)) * (info->hdotw_out * info->hdotw_out));
+    const float FD90 = .5f + (2 * (*getTextureColor(TextureArr[4], idx)) * (info->hdotw_out * info->hdotw_out));
     const float FDWOUT = 1 + ((FD90 - 1) * (1 - info->ndotw_out_pow5));
     const float FDWIN = 1 + ((FD90 - 1) * (1 - info->ndotw_in_pow5));
     const float baseDiff = (1/pi) * FDWIN * FDWOUT * info->ndotw_out;
 }
 
 __device__ float MatGpu::baseSubsurface(glm::vec2 * idx, const shaderInfo * info) const {
-    const float FSS90 = *getTextureColor(roughness, idx) * (info->hdotw_out * info->hdotw_out);
+    const float FSS90 = *getTextureColor(TextureArr[4], idx) * (info->hdotw_out * info->hdotw_out);
     const float FSSWOUT = 1 + ((FSS90 - 1) * (1 - info->ndotw_out_pow5));
     const float FSSWIN = 1 + ((FSS90 - 1) * (1 - info->ndotw_in_pow5));
     const float VOLUMEABSORB = (1.0f/(info->ndotw_in + info->ndotw_out)) - .5f;

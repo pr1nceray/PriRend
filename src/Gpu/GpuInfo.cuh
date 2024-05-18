@@ -21,10 +21,6 @@ struct GpuInfo {
     MatGpu * matDev;
     size_t matLen;
 
-    float * textureBuffer;
-    TextInfo * textureInfo;
-    size_t textLen;
-
     GpuInfo() = default; 
 
 
@@ -54,9 +50,6 @@ struct GpuInfo {
     size_t sumMeshSizes(const std::vector<Mesh> & meshIn) const; 
     size_t sumMeshArr(const std::vector<Mesh> & meshIn) const; 
     size_t sumMatArr(const std::vector<Material> & matIn) const;
-    size_t sumTextArr(const std::unordered_map<std::string, TextInfo *> & textures) const;
-    size_t sumTextInfoSize(const std::unordered_map<std::string, TextInfo *> & textures) const;
-    TextInfo * checkTextureInMap(uintptr_t txthost, const std::unordered_map<uintptr_t, TextInfo *> & textures);
     /*
     * Internal functions for copying material data
     */
