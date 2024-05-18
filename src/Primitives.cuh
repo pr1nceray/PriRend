@@ -14,15 +14,15 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 320;
+const int HEIGHT = 320;
 const int CHANNEL = 3;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 1024;
-const int BOUNCES = 1;
+const int SPP = 1;
+const int BOUNCES = 7;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -77,7 +77,7 @@ struct Ray {
 };
 
 __host__ __device__ void normalizeRayDir(Ray & ray);
-
+__device__ const bool isZero(const glm::vec3 * in);
 /*
 * Generate uniformly random float on the range -.5, .5
 */

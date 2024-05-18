@@ -38,10 +38,6 @@ __device__ CollisionInfo checkCollisions(const Ray & ray);
 */
 __device__ Color evalIter(Ray & ray, curandState * const randState, const int bounceCount);
 
-/*
-* eval is the recursive portion that checks for collisions, and applies bsdf
-*/
-__device__ Color eval(Ray & ray, curandState * const randState, const int bounceCount);
 
 /*
 * TraceRay is responsible for creating the ray and giving it a direction based on u,v.

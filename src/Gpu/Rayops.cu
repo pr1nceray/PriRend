@@ -73,18 +73,15 @@ __device__ CollisionInfo checkCollisions(const Ray & ray) {
 * also need to figure out the factor portion. 
 */
 __device__ Color evalIter(Ray & ray, curandState * const randState, const int bounceCount) {
-    Color final = Color(0.0f, 0.0f, 0.0f);
+    Color final = Color(1.0f, 1.0f, 1.0f);
     CollisionInfo collide;
     const MeshGpu * curMesh;
-    float factor = 1.0f;
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray);
         if (collide.meshIdx == -1) {
             float a = (.5 * (ray.Dir.y + 1.0));
-            final += (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a)) * factor;
-            return final;
+            return  final * (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a));
         }
-
         curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
 
         collide.TQA = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x].TQ;
@@ -92,38 +89,16 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         collide.TQC = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z].TQ;
 
         shaderInfo tmp;
-        return Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &tmp));
-
+        final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &tmp));
+        
+        // note : add .01f * newdir to avoid shadow acne
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-        ray = curMesh->generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
+        ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
+        ray.Origin = newOrigin + .001f * ray.Dir;
         collide.meshIdx = -1;
-        factor *= .5f;
     }
     
     return Color(0.0f, 0.0f, 0.0f); //bounce count exceeded
-}
-
-/*
- * Not usable; results in cuda kernel error bc of requesting too many resources
-*/
-__device__ Color eval(Ray & ray, curandState * const randState, const int bounceCount) {
-    if (bounceCount <= 0) {
-        return Color(0, 0, 0);
-    }
-
-    CollisionInfo collide = checkCollisions(ray);
-    if (collide.meshIdx == -1) {
-        float a = (.5 * (ray.Dir.y + 1.0));
-        return Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
-    }
-
-    const MeshGpu & curMesh = sceneInfo->meshDev[collide.meshIdx];
-    const glm::vec3 & normal = curMesh.getFaceNormal(collide.faceIdx);
-
-    //random direction
-    glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-    Ray newRay = curMesh.generateLambertianVecOnFace(collide.faceIdx, randState, newOrigin);
-    return  (eval(newRay, randState, bounceCount -1) * .5f);
 }
 
 /*
@@ -137,7 +112,6 @@ __device__ Color traceRay(float u, float v, curandState * const randState) {
     normalizeRayDir(ray);
     return evalIter(ray, randState, BOUNCES);
 }
-
 
 /*
 * spawnRay is responsible for creating parameters and calling traceRay
@@ -177,7 +151,6 @@ __global__ void spawnRay(int seed, uint8_t * colorArr) {
     gammaCorrect(&Final);
     Final *= 255.0f;
     Final = clampColor(Final);
-
 
     colorArr[one_d_idx] = Final.r;
     colorArr[one_d_idx + 1] = Final.g;
@@ -239,7 +212,6 @@ __global__ void convertArr(float * colorArr, uint8_t * out) {
     if(idx >= WIDTH || idy >= HEIGHT) {
         return;
     } 
-
     converColorProgressive(&colorArr[one_d_idx], &out[one_d_idx]);
 }
 

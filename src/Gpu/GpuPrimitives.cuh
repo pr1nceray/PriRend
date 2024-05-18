@@ -24,12 +24,13 @@ struct shaderInfo {
 
 struct MatGpu {
     __device__ explicit MatGpu() = default;
+    __device__ glm::vec3 samplePoint(const CollisionInfo * hitloc, const curandState_t * state) const;
     __device__ glm::vec2 getIdx(const CollisionInfo * hitLoc) const;
-    __device__ size_t getTextureIdx(TextInfo * inf, glm::vec2 * idx) const;
-    __device__ float * getTextureColor(TextInfo * inf, glm::vec2 * idx) const;
-    __device__ float * colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
-    __device__ float baseDiffuse(glm::vec2 * idx, const shaderInfo * info) const;
-    __device__ float baseSubsurface(glm::vec2 * idx, const shaderInfo * info) const;
+    __device__ size_t getTextureIdx(const TextInfo * inf, const glm::vec2 * idx) const;
+    __device__ const float * getTextureColor(const TextInfo * inf, const glm::vec2 * idx) const;
+    __device__ const float * colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
+    __device__ float baseDiffuse(const glm::vec2 * idx, const shaderInfo * info) const;
+    __device__ float baseSubsurface(const glm::vec2 * idx, const shaderInfo * info) const;
     TextInfo * TextureArr[5];
 };
 
@@ -42,9 +43,9 @@ struct MeshGpu {
     size_t vertexSize;
     size_t matIdx;
 
-    __device__ Ray generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
-    __device__ Ray generateLambertianVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const;
-    __device__ Ray generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir, const glm::vec3 & origin) const;
+    __device__ glm::vec3 generateRandomVecOnFace(const size_t faceIdx, curandState * state) const;
+    __device__ glm::vec3 generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const;
+    __device__ glm::vec3 generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const;
 
     __device__ MatGpu const & getMaterial() const;
     __device__ const glm::vec3 & getFaceNormal(size_t idx) const;

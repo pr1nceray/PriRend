@@ -15,7 +15,7 @@ struct Color{
   r(r_in), g(g_in), b(b_in) {
   }
 
-  __device__ __inline__ Color(float * arrIn) {
+  __device__ __inline__ Color(const float * arrIn) {
     r = *arrIn;
     g = *(arrIn + 1);
     b = *(arrIn + 2);

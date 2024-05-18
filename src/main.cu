@@ -7,7 +7,7 @@ int main() {
     try {
         Scene s = Scene();
         //s.add_object("./assets/WAVEBOX.fbx");
-        s.add_object("./assets/WAVEBOX.fbx");
+        s.add_object("./assets/sphere.fbx");
         //s.add_object("./assets/box.fbx");
         s.render();
     } catch(std::runtime_error err) {
