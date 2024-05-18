@@ -74,9 +74,7 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     * and point the materials to their respective arays
     */
     size_t materialBuffSize = sumMatArr(matIn);
-    std::unordered_map<uintptr_t, TextInfo *> textureTranslate;
     handleCudaError(cudaMalloc((void **)&matDev, materialBuffSize));
-
     //copy over the buffers
     MatGpu * matHost = new MatGpu[matIn.size()];
 
@@ -149,7 +147,7 @@ void GpuInfo::copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, M
 
 void GpuInfo::copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) {
-        //meshHost[i].matIdx = meshIn[i].diffIdx;
+        meshHost[i].matIdx = meshIn[i].MaterialIdx;
     }
 }
 /*
@@ -262,6 +260,20 @@ __global__ void printMeshGlobal() {
     }
 }
 
+__global__ void printBasicMaterialInfo() {
+    for(size_t i = 0; i < sceneInfo->matLen;++i) {
+        printf("printing basics for material : %d\n", static_cast<int>(i));
+        for(size_t j = 0; j < 5; ++j) {
+            if (sceneInfo->matDev[i].TextureArr[j]->basic) {
+                printf("   texture idx : %d", static_cast<int>(j));
+                printf("   values : %.6f %.6f %.6f\n",
+                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor),
+                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor + 1),
+                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor + 2));
+            }
+        }
+    }
+}
 __global__ void printMaterialInfo() {
 
     for (size_t i = 0; i < sceneInfo->matLen; ++i) {

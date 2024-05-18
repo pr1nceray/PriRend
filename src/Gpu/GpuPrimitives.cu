@@ -29,14 +29,21 @@ __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, c
 }
 
  __device__ size_t MatGpu::getTextureIdx(TextInfo * inf, glm::vec2 * idx) const {
+    if(inf->basic) {
+        return 0;
+    }
     size_t xInt = static_cast<size_t>((inf->width * idx->x) + .5f);
     size_t yInt = static_cast<size_t>((inf->height * idx->y) + .5f);
     return (CHANNEL * (yInt * inf->width + xInt));
  }
 
  __device__ float * MatGpu::getTextureColor(TextInfo * inf, glm::vec2 * idx) const {
-    size_t xInt = static_cast<size_t>((inf->width * idx->x) + .5f);
-    size_t yInt = static_cast<size_t>((inf->height * idx->y) + .5f);
+    TextInfo * txinf = inf;
+    if(inf->basic) {
+        return txinf->basicColor;
+    }
+    size_t xInt = static_cast<size_t>(inf->width * idx->x);
+    size_t yInt = static_cast<size_t>(inf->height * idx->y);
     return inf->arr + (CHANNEL * (yInt * inf->width + xInt));
  }
 
@@ -49,9 +56,11 @@ __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, c
 */
 __device__ float * MatGpu::colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const {
     glm::vec2 idx = (getIdx(hitLoc));
-    float diffFactor = baseDiffuse(&idx, info);
-    float subsurface = baseSubsurface(&idx, info);
-    return &diffFactor;
+    //float diffFactor = baseDiffuse(&idx, info);
+    //float subsurface = baseSubsurface(&idx, info);
+    // printf("is basic : %s\n", TextureArr[1]->basic? "true":"false");
+    // printf("r, g, b : %.6f  %.6f  %.6f\n", *(TextureArr[1]->basicColor), *(TextureArr[1]->basicColor + 1), *(TextureArr[1]->basicColor + 2));
+    return getTextureColor(TextureArr[0], &idx);//TextureArr[0]->basicColor; // (TextureArr[0], &idx)
 }   
 
 /*

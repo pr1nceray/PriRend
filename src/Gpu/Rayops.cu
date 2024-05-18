@@ -114,7 +114,6 @@ __device__ Color eval(Ray & ray, curandState * const randState, const int bounce
     CollisionInfo collide = checkCollisions(ray);
     if (collide.meshIdx == -1) {
         float a = (.5 * (ray.Dir.y + 1.0));
-
         return Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a);
     }
 

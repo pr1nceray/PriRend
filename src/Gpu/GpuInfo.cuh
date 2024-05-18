@@ -17,7 +17,6 @@ struct GpuInfo {
     MeshGpu * meshDev; //contains array of pointers that point to locations in infoBuffer
     void * infoBuffer; //contains all info.
     size_t meshLen;
-
     MatGpu * matDev;
     size_t matLen;
 
@@ -62,4 +61,5 @@ __global__ void printMeshInfo(GpuInfo inf);
 __global__ void printMeshInfo(GpuInfo * inf);
 __global__ void printMeshGlobal();
 __global__ void printMaterialInfo();
+__global__ void printBasicMaterialInfo();
 __device__ extern GpuInfo * sceneInfo;

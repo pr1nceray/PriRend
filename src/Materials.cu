@@ -52,7 +52,6 @@ TextInfo Material::loadImage(const std::string & fileName) {
         throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }
     float * newImageData = new float[width * height * 3];
-
     flipImage(imageData, width, height);
     convert(imageData, width * height * 3, newImageData);
     stbi_image_free(imageData);
@@ -90,6 +89,7 @@ void Material::checkInScene(const std::string & fileName, size_t idx) {
     return;
 }
 
+//note : flip and convert function?
 // note : make cuda function
 void Material::convert(uint8_t * source, size_t max, float * out) {
     for(size_t i = 0; i < max; ++i) {

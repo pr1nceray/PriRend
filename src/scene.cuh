@@ -30,6 +30,7 @@ class Scene
         GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
         // printMeshGlobal<<<1,1>>>();
         // printMaterialInfo<<<1,1>>>();
+        // printBasicMaterialInfo<<<1,1>>>();
         return temp;
     }
     
@@ -50,11 +51,9 @@ class Scene
             delete[] it.second->arr; // free information.
             delete it.second; // delete textureinfo ptr
         }
-
         for (auto it : Material::getTexturesDelete()) {
             handleCudaError(cudaFree((void *)it));
         }
-
         for (auto it : Material::getTextInfoDelete()) {
             handleCudaError(cudaFree((void *)it));
         }

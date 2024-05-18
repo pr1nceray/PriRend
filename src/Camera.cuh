@@ -69,14 +69,20 @@ class Camera {
             handleCudaError(cudaGetLastError());
             handleCudaError(cudaDeviceSynchronize());
 
-            // Convert and copy
-            convertArr<<<grid, block>>>(progressiveArr, imageDev);
-            handleCudaError(cudaGetLastError());
-            handleCudaError(cudaDeviceSynchronize());
-            handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
-
-            Write_Image();
+            if (i % 16 == 0) {
+                convertArr<<<grid, block>>>(progressiveArr, imageDev);
+                handleCudaError(cudaGetLastError());
+                handleCudaError(cudaDeviceSynchronize());
+                handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
+                Write_Image();
+            }
         }
+        handleCudaError(cudaDeviceSynchronize());
+        convertArr<<<grid, block>>>(progressiveArr, imageDev);
+        handleCudaError(cudaGetLastError());
+        handleCudaError(cudaDeviceSynchronize());
+        handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
+        Write_Image();
     }
 
     private:

@@ -102,12 +102,12 @@ void Object::processMaterials(const aiMaterial * mat, std::vector<Material> & ma
     Material matToAdd;
     Color white = Color(1.0f, 1.0f, 1.0f);
     Color roughness = Color(.5f, .5f, .5f);
-    Color black = Color();
+    Color black = Color(.25f, .25f, .25f);
     checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE, white);
     checkBasic(&matToAdd, mat, aiTextureType_NORMALS, black);
     checkBasic(&matToAdd, mat, aiTextureType_SPECULAR, black);
     checkBasic(&matToAdd, mat, aiTextureType_METALNESS, black);
-    checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE_ROUGHNESS, black);
+    checkBasic(&matToAdd, mat, aiTextureType_DIFFUSE_ROUGHNESS, roughness);
     materials.push_back(matToAdd);
 
 }

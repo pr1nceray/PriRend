@@ -56,6 +56,6 @@ inline void handleCudaError(cudaError err) {
     if (err != cudaSuccess) {
         std::cerr << err << "\n";
         cudaDeviceReset();
-        throw std::runtime_error(" Issue with cuda; Error code : " + std::string(cudaGetErrorString(err)));
+        throw std::runtime_error(" Issue with cuda; Error : " + std::string(cudaGetErrorString(err)));
     }
 }
