@@ -29,11 +29,7 @@ struct MatGpu{
     __device__ float * colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
     __device__ float baseDiffuse(glm::vec2 * idx, const shaderInfo * info) const;
     __device__ float baseSubsurface(glm::vec2 * idx, const shaderInfo * info) const;
-    TextInfo * diffuse;
-    TextInfo * normals;
-    TextInfo * metallic;
-    TextInfo * specular;
-    TextInfo * roughness;
+    TextInfo * TextureArr[5];
 };
 
 struct MeshGpu {
@@ -54,3 +50,11 @@ struct MeshGpu {
 };
 
 __device__ void printTextures(TextInfo * text);
+
+inline void handleCudaError(cudaError err) {
+    if (err != cudaSuccess) {
+        std::cerr << err << "\n";
+        cudaDeviceReset();
+        throw std::runtime_error(" Issue with cuda; Error code : " + std::string(cudaGetErrorString(err)));
+    }
+}

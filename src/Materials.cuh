@@ -6,12 +6,13 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <set>
+#include <vector>
 #include <unordered_map>
 
 #include <glm/vec3.hpp>
 #include "./Primitives.cuh"
 #include "./Color.cuh"
+#include "./Gpu/GpuPrimitives.cuh"
 
 
 /*
@@ -29,7 +30,8 @@ class Material {
     }
 
     static const std::unordered_map<std::string, TextInfo *> & getTextures();
-    
+    static const std::vector<TextInfo *> & getTextInfoDelete();
+    static const std::vector<float *> & getTexturesDelete();
     /*
     * Class functions
     */
@@ -48,7 +50,7 @@ class Material {
 
     private :
     TextInfo loadImage(const std::string & fileName);
-    TextInfo *checkInScene(const std::string & fileName);
+    void checkInScene(const std::string & fileName, size_t idx);
 
     /*
     * Order of materials : 
@@ -59,8 +61,12 @@ class Material {
     TextInfo * texturesDev[5];
 
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
+    static std::unordered_map<uintptr_t, TextInfo *> GpuMaterials;
+    static std::vector<TextInfo *> TextInfoDelete;
+    static std::vector<float *> TexturesDelete;
+
     void convert(uint8_t * source, size_t max, float * out);
     void flipImage(uint8_t *imageData, size_t width, size_t height);
-    void setColorToTextInfo(Color & c, TextInfo * texture);
+    void setColorToTextInfo(Color & c, size_t idx);
 };
 

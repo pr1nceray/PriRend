@@ -70,24 +70,15 @@ void GpuInfo::copyMeshData(const std::vector<Mesh> & meshIn) {
 void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     
     /*
-    * Obtain material map
-    * malloc the size of the texture info
-    * then, malloc the size of the images
-    * Copy over images
+    * malloc the materials
+    * and point the materials to their respective arays
     */
-    auto & matMap = Material::getTextures();
-    
-    size_t textureBuffSize = sumTextArr(matMap);
-    size_t textureInfoSize = sumTextInfoSize(matMap);
     size_t materialBuffSize = sumMatArr(matIn);
     std::unordered_map<uintptr_t, TextInfo *> textureTranslate;
-    handleCudaError(cudaMalloc((void **)&textureBuffer, textureBuffSize)); //malloc the raw texture data buffer
-    handleCudaError(cudaMalloc((void **)&textureInfo, textureInfoSize)); //malloc the other info (ptr to data, size, width)
     handleCudaError(cudaMalloc((void **)&matDev, materialBuffSize));
 
     //copy over the buffers
     MatGpu * matHost = new MatGpu[matIn.size()];
-    TextInfo * textHost = new TextInfo[matMap.size()];
     void * textStart = textureBuffer;
 
     // NOTE : slow due the amount of calls to cudaMemcpy

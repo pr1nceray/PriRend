@@ -33,6 +33,8 @@ class Scene
         return temp;
     }
     
+
+
     void freeAllMaterials() {
         // deletes the basic textures
         for (auto it : sceneMats) {
@@ -47,6 +49,14 @@ class Scene
         for (auto it : Material::getTextures()) {
             delete[] it.second->arr; // free information.
             delete it.second; // delete textureinfo ptr
+        }
+
+        for (auto it : Material::getTexturesDelete()) {
+            cudaFree((void *)it);
+        }
+
+        for (auto it : Material::getTextInfoDelete()) {
+            cudaFree((void *)it);
         }
     }
 

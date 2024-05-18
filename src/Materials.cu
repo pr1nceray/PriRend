@@ -3,6 +3,9 @@
 #include "stb_image.h"
 
 std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
+std::unordered_map<uintptr_t, TextInfo *> Material::GpuMaterials;
+std::vector<TextInfo *> TextInfoDelete;
+std::vector<float *> TexturesDelete;
 
 // quick way to map aiTextureType enum to size_t
 const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
@@ -11,6 +14,13 @@ const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
 
 const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
     return currentMaterials;
+}
+
+const std::vector<TextInfo *> & Material::getTextInfoDelete() {
+    return TextInfoDelete;
+}
+const std::vector<float *> & Material::getTexturesDelete() {
+    return TexturesDelete;
 }
 
 void Material::setBasic(Color c, aiTextureType type) {
@@ -22,7 +32,7 @@ void Material::setBasic(Color c, aiTextureType type) {
         throw std::runtime_error("Attempting to set a texture to basic when it already has a value.");
     }
     textures[it->second] = new TextInfo();
-    setColorToTextInfo(c, textures[it->second]);
+    setColorToTextInfo(c, it->second);
 }
 
 void Material::loadTexture(const std::string & fileName, aiTextureType type) {
@@ -33,7 +43,7 @@ void Material::loadTexture(const std::string & fileName, aiTextureType type) {
     if(textures[it->second] != nullptr) {
         throw std::runtime_error("Attempting to set a texture to Loaded image when it already has a value.");
     }
-    textures[it->second] = checkInScene(fileName);
+    checkInScene(fileName, it->second);
 }
 
 TextInfo Material::loadImage(const std::string & fileName) {
@@ -43,20 +53,43 @@ TextInfo Material::loadImage(const std::string & fileName) {
         throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }
     float * newImageData = new float[width * height * 3];
+
     flipImage(imageData, width, height);
     convert(imageData, width * height * 3, newImageData);
     stbi_image_free(imageData);
     return TextInfo{newImageData, width, height};
 }
 
-TextInfo *Material::checkInScene(const std::string & fileName) {
-    if (Material::currentMaterials.find(fileName) != Material::currentMaterials.end()) {
-        return Material::currentMaterials.find(fileName)->second;
+void Material::checkInScene(const std::string & fileName, size_t idx) {
+    if (currentMaterials.find(fileName) != currentMaterials.end()) {
+        textures[idx] = currentMaterials.find(fileName)->second;
+        texturesDev[idx] = GpuMaterials.find(reinterpret_cast<uintptr_t>(textures[idx]))->second;
+        return;
     }
+
+    // allow for host file image loading
     TextInfo *texture = new TextInfo();
     *texture = loadImage(fileName);
-    Material::currentMaterials[fileName] = texture;
-    return texture;
+    currentMaterials[fileName] = texture;
+
+    // clone the image, but on gpu
+    float * array;
+    size_t size = sizeof(float) * texture->width * texture->height * 3;
+    handleCudaError(cudaMalloc((void **)&array, size));
+    handleCudaError(cudaMemcpy((void *)array, texture->arr, size, cudaMemcpyHostToDevice));
+    TexturesDelete.push_back(array);
+
+    // create a clone of the text info, but on gpu.
+    TextInfo gpuCopy = *texture;
+    TextInfo *gpuPtr;
+    gpuCopy.arr = array;
+    handleCudaError(cudaMalloc((void **)&texturesDev[idx], sizeof(TextInfo)));
+    handleCudaError(cudaMemcpy((void *)gpuPtr, &gpuCopy, sizeof(TextInfo), cudaMemcpyHostToDevice));
+
+    // create link between host and gpu.
+    GpuMaterials[reinterpret_cast<uintptr_t>(texture)] = gpuPtr;
+    TextInfoDelete.push_back(texturesDev[idx]);
+    return;
 }
 
 // note : make cuda function
@@ -99,9 +132,13 @@ const TextInfo * Material::getRoughness() const {
     return textures[4];
 }
 
-void Material::setColorToTextInfo(Color & c, TextInfo * texture) {
-    texture->basic = true;
-    *(texture->basicColor) = c.r;
-    *(texture->basicColor + 1) = c.g;
-    *(texture->basicColor + 2) = c.b;
+void Material::setColorToTextInfo(Color & c, size_t idx) {
+    textures[idx]->basic = true;
+    *(textures[idx]->basicColor) = c.r;
+    *(textures[idx]->basicColor + 1) = c.g;
+    *(textures[idx]->basicColor + 2) = c.b;
+    handleCudaError(cudaMalloc((void **)texturesDev[idx], sizeof(TextInfo)));
+    handleCudaError(cudaMemcpy((void *)texturesDev[idx], textures[idx], 
+    sizeof(TextInfo), cudaMemcpyHostToDevice));
+    TextInfoDelete.push_back(texturesDev[idx]);
 }
