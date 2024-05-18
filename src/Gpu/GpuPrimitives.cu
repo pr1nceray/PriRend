@@ -51,6 +51,7 @@ __device__ float * MatGpu::colorAt(const CollisionInfo * hitLoc, const shaderInf
     glm::vec2 idx = (getIdx(hitLoc));
     float diffFactor = baseDiffuse(&idx, info);
     float subsurface = baseSubsurface(&idx, info);
+    return &diffFactor;
 }   
 
 /*
@@ -62,6 +63,7 @@ __device__ float MatGpu::baseDiffuse(glm::vec2 * idx, const shaderInfo * info) c
     const float FDWOUT = 1 + ((FD90 - 1) * (1 - info->ndotw_out_pow5));
     const float FDWIN = 1 + ((FD90 - 1) * (1 - info->ndotw_in_pow5));
     const float baseDiff = (1/pi) * FDWIN * FDWOUT * info->ndotw_out;
+    return baseDiff;
 }
 
 __device__ float MatGpu::baseSubsurface(glm::vec2 * idx, const shaderInfo * info) const {
@@ -69,7 +71,8 @@ __device__ float MatGpu::baseSubsurface(glm::vec2 * idx, const shaderInfo * info
     const float FSSWOUT = 1 + ((FSS90 - 1) * (1 - info->ndotw_out_pow5));
     const float FSSWIN = 1 + ((FSS90 - 1) * (1 - info->ndotw_in_pow5));
     const float VOLUMEABSORB = (1.0f/(info->ndotw_in + info->ndotw_out)) - .5f;
-    const float baseDiff = (1.25f/pi) * (FSSWIN * FSSWOUT * VOLUMEABSORB + .5f) * info->ndotw_out;
+    const float baseSS = (1.25f/pi) * (FSSWIN * FSSWOUT * VOLUMEABSORB + .5f) * info->ndotw_out;
+    return baseSS;
 }
 
 __device__ Ray MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state, const glm::vec3 & origin) const {

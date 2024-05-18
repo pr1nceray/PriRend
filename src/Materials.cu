@@ -4,8 +4,8 @@
 
 std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
 std::unordered_map<uintptr_t, TextInfo *> Material::GpuMaterials;
-std::vector<TextInfo *> TextInfoDelete;
-std::vector<float *> TexturesDelete;
+std::vector<TextInfo *> Material::TextInfoDelete;
+std::vector<float *> Material::TexturesDelete;
 
 // quick way to map aiTextureType enum to size_t
 const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
@@ -31,7 +31,6 @@ void Material::setBasic(Color c, aiTextureType type) {
     if(textures[it->second] != nullptr) {
         throw std::runtime_error("Attempting to set a texture to basic when it already has a value.");
     }
-    textures[it->second] = new TextInfo();
     setColorToTextInfo(c, it->second);
 }
 
@@ -71,7 +70,7 @@ void Material::checkInScene(const std::string & fileName, size_t idx) {
     TextInfo *texture = new TextInfo();
     *texture = loadImage(fileName);
     currentMaterials[fileName] = texture;
-
+    textures[idx] = texture;
     // clone the image, but on gpu
     float * array;
     size_t size = sizeof(float) * texture->width * texture->height * 3;
@@ -81,13 +80,12 @@ void Material::checkInScene(const std::string & fileName, size_t idx) {
 
     // create a clone of the text info, but on gpu.
     TextInfo gpuCopy = *texture;
-    TextInfo *gpuPtr;
     gpuCopy.arr = array;
     handleCudaError(cudaMalloc((void **)&texturesDev[idx], sizeof(TextInfo)));
-    handleCudaError(cudaMemcpy((void *)gpuPtr, &gpuCopy, sizeof(TextInfo), cudaMemcpyHostToDevice));
+    handleCudaError(cudaMemcpy((void *)texturesDev[idx], &gpuCopy, sizeof(TextInfo), cudaMemcpyHostToDevice));
 
     // create link between host and gpu.
-    GpuMaterials[reinterpret_cast<uintptr_t>(texture)] = gpuPtr;
+    GpuMaterials[reinterpret_cast<uintptr_t>(texture)] = texturesDev[idx];
     TextInfoDelete.push_back(texturesDev[idx]);
     return;
 }
@@ -136,11 +134,12 @@ TextInfo ** Material::getGpuTextures() const {
 }
 
 void Material::setColorToTextInfo(Color & c, size_t idx) {
+    textures[idx] = new TextInfo();
     textures[idx]->basic = true;
     *(textures[idx]->basicColor) = c.r;
     *(textures[idx]->basicColor + 1) = c.g;
     *(textures[idx]->basicColor + 2) = c.b;
-    handleCudaError(cudaMalloc((void **)texturesDev[idx], sizeof(TextInfo)));
+    handleCudaError(cudaMalloc((void **)&texturesDev[idx], sizeof(TextInfo)));
     handleCudaError(cudaMemcpy((void *)texturesDev[idx], textures[idx], 
     sizeof(TextInfo), cudaMemcpyHostToDevice));
     TextInfoDelete.push_back(texturesDev[idx]);

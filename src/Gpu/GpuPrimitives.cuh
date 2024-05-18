@@ -5,6 +5,7 @@
 #include <curand_kernel.h>
 #include <stdio.h>
 #include <glm/vec3.hpp>
+#include <iostream>
 #include "../Primitives.cuh"
 
 /*
@@ -21,7 +22,7 @@ struct shaderInfo {
     float ndotw_in_pow5;
 };
 
-struct MatGpu{
+struct MatGpu {
     __device__ explicit MatGpu() = default;
     __device__ glm::vec2 getIdx(const CollisionInfo * hitLoc) const;
     __device__ size_t getTextureIdx(TextInfo * inf, glm::vec2 * idx) const;

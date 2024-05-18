@@ -246,7 +246,7 @@ __global__ void printMeshInfo(GpuInfo * inf) {
         printMeshNormals(&cur);
         printMeshEdges(&cur);
         printMeshVertexs(&cur);
-        printf("Material idx : %d", cur.matIdx);
+        printf("Material idx : %d", static_cast<int>(cur.matIdx));
     }
 }
 
