@@ -267,9 +267,9 @@ __global__ void printBasicMaterialInfo() {
             if (sceneInfo->matDev[i].TextureArr[j]->basic) {
                 printf("   texture idx : %d", static_cast<int>(j));
                 printf("   values : %.6f %.6f %.6f\n",
-                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor),
-                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor + 1),
-                 *(sceneInfo->matDev[i].TextureArr[j]->basicColor + 2));
+                 (sceneInfo->matDev[i].TextureArr[j]->basicColor.x),
+                 (sceneInfo->matDev[i].TextureArr[j]->basicColor.y),
+                 (sceneInfo->matDev[i].TextureArr[j]->basicColor.z));
             }
         }
     }
@@ -278,10 +278,6 @@ __global__ void printMaterialInfo() {
 
     for (size_t i = 0; i < sceneInfo->matLen; ++i) {
         printf("Printing Diffuse for material : %d \n", static_cast<int>(i));
-        printf("Width : %d Height : %d Texture Address : %p \n",
-        sceneInfo->matDev[i].TextureArr[0]->width, 
-        sceneInfo->matDev[i].TextureArr[0]->height, 
-        sceneInfo->matDev[i].TextureArr[0]->arr);
         printTextures(sceneInfo->matDev[i].TextureArr[0]);
     }
 }

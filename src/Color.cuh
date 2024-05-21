@@ -20,6 +20,12 @@ struct Color{
     g = *(arrIn + 1);
     b = *(arrIn + 2);
    }
+
+   __device__ __inline__ Color(const float4 colorIn) {
+    r = colorIn.x;
+    g = colorIn.y;
+    b = colorIn.z;
+   }
   /*
   * Operators defined in Color.cpp
   */

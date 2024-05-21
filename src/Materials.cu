@@ -3,9 +3,7 @@
 #include "stb_image.h"
 
 std::unordered_map<std::string, TextInfo *> Material::currentMaterials;
-std::unordered_map<uintptr_t, TextInfo *> Material::GpuMaterials;
-std::vector<TextInfo *> Material::TextInfoDelete;
-std::vector<float *> Material::TexturesDelete;
+std::vector<TextInfo *> Material::allInfo;
 
 // quick way to map aiTextureType enum to size_t
 const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
@@ -16,11 +14,8 @@ const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
     return currentMaterials;
 }
 
-const std::vector<TextInfo *> & Material::getTextInfoDelete() {
-    return TextInfoDelete;
-}
-const std::vector<float *> & Material::getTexturesDelete() {
-    return TexturesDelete;
+const std::vector<TextInfo *>Material::getAllInfo() {
+    return allInfo;
 }
 
 void Material::setBasic(Color c, aiTextureType type) {
@@ -45,47 +40,38 @@ void Material::loadTexture(const std::string & fileName, aiTextureType type) {
     checkInScene(fileName, it->second);
 }
 
-TextInfo Material::loadImage(const std::string & fileName) {
+TextInfo* Material::loadImage(const std::string & fileName) {
     int width, height, numChannel;
-    uint8_t * imageData = stbi_load(std::string("./assets/" + fileName).c_str(), & width, &height, &numChannel, 3);
+    uint8_t * imageData = stbi_load(std::string("./assets/" + fileName).c_str(), 
+    & width, &height, &numChannel, CHANNELSTEXTURE);
+
     if (imageData == NULL || stbi_failure_reason()) {
         throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }
-    float * newImageData = new float[width * height * 3];
-    flipImage(imageData, width, height);
-    convert(imageData, width * height * 3, newImageData);
+    float * newImageData = new float[CHANNELSTEXTURE * width * height];
+    // flipImage(imageData, width, height);
+    convert(imageData, width * height * CHANNELSTEXTURE, newImageData);
     stbi_image_free(imageData);
-    return TextInfo{newImageData, width, height};
+    TextInfo *texture = new TextInfo();
+    texture->basic = false;
+    createCudaTexture(texture, newImageData, width, height);
+    delete[] newImageData;
+    return texture;
 }
 
 void Material::checkInScene(const std::string & fileName, size_t idx) {
     if (currentMaterials.find(fileName) != currentMaterials.end()) {
         textures[idx] = currentMaterials.find(fileName)->second;
-        texturesDev[idx] = GpuMaterials.find(reinterpret_cast<uintptr_t>(textures[idx]))->second;
         return;
     }
 
-    // allow for host file image loading
-    TextInfo *texture = new TextInfo();
-    *texture = loadImage(fileName);
+    TextInfo *texture = loadImage(fileName);
     currentMaterials[fileName] = texture;
     textures[idx] = texture;
-    // clone the image, but on gpu
-    float * array;
-    size_t size = sizeof(float) * texture->width * texture->height * 3;
-    handleCudaError(cudaMalloc((void **)&array, size));
-    handleCudaError(cudaMemcpy((void *)array, texture->arr, size, cudaMemcpyHostToDevice));
-    TexturesDelete.push_back(array);
-
-    // create a clone of the text info, but on gpu.
-    TextInfo gpuCopy = *texture;
-    gpuCopy.arr = array;
+    
     handleCudaError(cudaMalloc((void **)&texturesDev[idx], sizeof(TextInfo)));
-    handleCudaError(cudaMemcpy((void *)texturesDev[idx], &gpuCopy, sizeof(TextInfo), cudaMemcpyHostToDevice));
-
-    // create link between host and gpu.
-    GpuMaterials[reinterpret_cast<uintptr_t>(texture)] = texturesDev[idx];
-    TextInfoDelete.push_back(texturesDev[idx]);
+    handleCudaError(cudaMemcpy((void *)texturesDev[idx], textures[idx], sizeof(TextInfo), cudaMemcpyHostToDevice));
+    allInfo.push_back(texture);
     return;
 }
 
@@ -100,12 +86,17 @@ void Material::convert(uint8_t * source, size_t max, float * out) {
 // note : make cuda function
 void Material::flipImage(uint8_t *imageData, size_t width, size_t height) {
     for (size_t i = 0; i < height/2; ++i) {
-        size_t idxNorm = 3 * (i * width);
-        size_t idxSwap = 3 * (height - (i +1)) * width;
+        size_t idxNorm = CHANNELSTEXTURE * (i * width);
+        size_t idxSwap = CHANNELSTEXTURE * (height - (i +1)) * width;
         for(size_t j = 0; j < width; ++j) {
-            std::swap(imageData[idxNorm + (j * 3)], imageData[idxSwap + (j * 3)]);
-            std::swap(imageData[idxNorm + (j * 3) + 1], imageData[idxSwap + (j * 3) +1]);
-            std::swap(imageData[idxNorm + (j * 3) + 2], imageData[idxSwap + (j * 3) + 2]);
+            std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE)],
+             imageData[idxSwap + (j * CHANNELSTEXTURE)]);
+            std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 1],
+             imageData[idxSwap + (j * CHANNELSTEXTURE) +1]);
+            std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 2], 
+            imageData[idxSwap + (j * CHANNELSTEXTURE) + 2]);
+            //std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 3], 
+            //imageData[idxSwap + (j * CHANNELSTEXTURE) + 3]);
         }
     }
 }
@@ -133,14 +124,48 @@ TextInfo ** Material::getGpuTextures() const {
     return (TextInfo**)texturesDev;
 }
 
+TextInfo ** Material::getHostTextures() const {
+    return (TextInfo**)textures;
+}
+
 void Material::setColorToTextInfo(Color & c, size_t idx) {
     textures[idx] = new TextInfo();
     textures[idx]->basic = true;
-    *(textures[idx]->basicColor) = c.r;
-    *(textures[idx]->basicColor + 1) = c.g;
-    *(textures[idx]->basicColor + 2) = c.b;
+    (textures[idx]->basicColor.x) = c.r;
+    (textures[idx]->basicColor.y) = c.g;
+    (textures[idx]->basicColor.z) = c.b;
     handleCudaError(cudaMalloc((void **)&texturesDev[idx], sizeof(TextInfo)));
     handleCudaError(cudaMemcpy((void *)texturesDev[idx], textures[idx], 
     sizeof(TextInfo), cudaMemcpyHostToDevice));
-    TextInfoDelete.push_back(texturesDev[idx]);
+    
+    allInfo.push_back(textures[idx]);
+
+}
+
+void Material::createCudaTexture(TextInfo *txtIn, float * dataIn, size_t width, size_t height) {
+    cudaArray_t dataGpu;
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat); 
+
+    handleCudaError(cudaGetLastError());
+    handleCudaError(cudaMallocArray(&dataGpu, &channelDesc, width, height));
+
+    const size_t size = height * width * CHANNELSTEXTURE * sizeof(float);
+    handleCudaError(cudaMemcpyToArray(dataGpu, 0, 0, dataIn, size, cudaMemcpyHostToDevice));
+    
+   cudaResourceDesc resDec;
+   memset(&resDec, 0, sizeof(cudaResourceDesc));
+   resDec.resType = cudaResourceTypeArray;
+   resDec.res.array.array = dataGpu;
+
+   cudaTextureDesc textDesc;
+   memset(&textDesc, 0, sizeof(cudaTextureDesc));
+   textDesc.addressMode[0] = cudaAddressModeBorder;
+   textDesc.addressMode[1] = cudaAddressModeBorder;
+   textDesc.filterMode = cudaFilterModeLinear;
+   textDesc.readMode = cudaReadModeElementType;
+   textDesc.normalizedCoords = 1;
+
+   txtIn->text = 0;
+   handleCudaError(cudaCreateTextureObject(&txtIn->text, &resDec, &textDesc, NULL));
+
 }

@@ -28,40 +28,35 @@ class Scene
             }
         }
         GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
-        // printMeshGlobal<<<1,1>>>();
-        // printMaterialInfo<<<1,1>>>();
-        // printBasicMaterialInfo<<<1,1>>>();
         return temp;
     }
     
 
-
+    /*
+    * Leaks memory on basic materials that are cuda malloc'd
+    */
     void freeAllMaterials() {
-        // deletes the basic textures
-        for (auto it : sceneMats) {
-            freeBasic(it.getDiffuse());
-            freeBasic(it.getNormal());
-            freeBasic(it.getSpecular());
-            freeBasic(it.getMetallic());
-            freeBasic(it.getRoughness());
-        }
-
+        // deletes the textubfi objets
         // delete the image textures that we allocated
         for (auto it : Material::getTextures()) {
-            delete[] it.second->arr; // free information.
-            delete it.second; // delete textureinfo ptr
+            cudaResourceDesc desc;
+            handleCudaError(cudaGetTextureObjectResourceDesc(&desc, it.second->text));
+            cudaFreeArray(desc.res.array.array);
+            handleCudaError(cudaDestroyTextureObject(it.second->text));
         }
-        for (auto it : Material::getTexturesDelete()) {
-            handleCudaError(cudaFree((void *)it));
+
+        for (auto it : sceneMats) {
+            freeBasic(it);
         }
-        for (auto it : Material::getTextInfoDelete()) {
-            handleCudaError(cudaFree((void *)it));
-        }
+
+
     }
 
-    void freeBasic(const TextInfo * ptr) {
-        if(ptr->basic) {
-            delete ptr;
+    // deletes all textInfo objects
+    void freeBasic(const Material & mat) {
+        for (size_t i = 0; i < 5; ++i) {
+            delete mat.getHostTextures()[i];
+            cudaFree(mat.getGpuTextures()[i]);
         }
     } 
 

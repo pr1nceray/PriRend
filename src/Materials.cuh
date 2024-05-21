@@ -14,7 +14,7 @@
 #include "./Color.cuh"
 #include "./Gpu/GpuPrimitives.cuh"
 
-
+#define CHANNELSTEXTURE 4
 /*
 * TODO : figure out materials.
 */
@@ -30,8 +30,7 @@ class Material {
     }
 
     static const std::unordered_map<std::string, TextInfo *> & getTextures();
-    static const std::vector<TextInfo *> & getTextInfoDelete();
-    static const std::vector<float *> & getTexturesDelete();
+    static const std::vector<TextInfo *>getAllInfo();
     /*
     * Class functions
     */
@@ -47,9 +46,10 @@ class Material {
     const TextInfo * getMetallic() const;
     const TextInfo * getRoughness() const;
     TextInfo ** getGpuTextures() const;
-
+    TextInfo ** getHostTextures() const;
+    
     private :
-    TextInfo loadImage(const std::string & fileName);
+    TextInfo *loadImage(const std::string & fileName);
     void checkInScene(const std::string & fileName, size_t idx);
 
     /*
@@ -61,12 +61,10 @@ class Material {
     TextInfo * texturesDev[5];
 
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
-    static std::unordered_map<uintptr_t, TextInfo *> GpuMaterials;
-    static std::vector<TextInfo *> TextInfoDelete;
-    static std::vector<float *> TexturesDelete;
-
+    static std::vector<TextInfo *> allInfo;
     void convert(uint8_t * source, size_t max, float * out);
     void flipImage(uint8_t *imageData, size_t width, size_t height);
     void setColorToTextInfo(Color & c, size_t idx);
+    void createCudaTexture(TextInfo * txtIn, float * dataIn, size_t width, size_t height);
 };
 

@@ -96,7 +96,7 @@ class Camera {
     size_t sizeImage;
     dim3 block;
     void Write_Image() {
-        stbi_write_png("Output.png", WIDTH, HEIGHT, 3, imageHost, WIDTH * 3);
+        stbi_write_png("Output.png", WIDTH, HEIGHT, CHANNEL, imageHost, WIDTH * CHANNEL);
     }
 
 

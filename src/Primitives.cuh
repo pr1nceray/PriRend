@@ -14,15 +14,15 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 320;
-const int HEIGHT = 320;
-const int CHANNEL = 3;
+const int WIDTH = 640;
+const int HEIGHT = 640;
+const int CHANNEL = 4;
 
 const int FOV_Y = 60;
 const int FOV_X = 90;
 
-const int SPP = 1;
-const int BOUNCES = 7;
+const int SPP = 1024;
+const int BOUNCES = 16;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -36,16 +36,14 @@ struct Vertex {
 };
 
 struct TextInfo {
-    TextInfo() : arr(nullptr), basic(true) {
+    TextInfo() : basic(true) {
     }
-    TextInfo(float * arrIn, int widthIn, int heightIn) : 
-    arr(arrIn), width(widthIn), height(heightIn), basic(false){
+    TextInfo(cudaTextureObject_t obj) : 
+    text(obj), basic(false){
     }
-    float * arr;
-    int width;
-    int height;
+    cudaTextureObject_t text;
     bool basic;
-    float basicColor[3];
+    float4 basicColor;
 };
 
 struct CollisionInfo {
@@ -56,7 +54,6 @@ struct CollisionInfo {
     float distanceMin;
     int faceIdx;
     int meshIdx;
-
     __host__ __device__ CollisionInfo() :
     CollisionPoint(glm::vec2(0, 0)),
     distanceMin(__FLT_MAX__),

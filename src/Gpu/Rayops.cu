@@ -90,7 +90,6 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
 
         shaderInfo tmp;
         final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &tmp));
-        
         // note : add .01f * newdir to avoid shadow acne
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
         ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
@@ -155,6 +154,7 @@ __global__ void spawnRay(int seed, uint8_t * colorArr) {
     colorArr[one_d_idx] = Final.r;
     colorArr[one_d_idx + 1] = Final.g;
     colorArr[one_d_idx + 2] = Final.b;
+    colorArr[one_d_idx + 3] = 255;
 }
 
 
@@ -189,6 +189,7 @@ __global__ void spawnRayProgressive(int seed, float * colorArr) {
     colorArr[one_d_idx] += Final.r;
     colorArr[one_d_idx + 1] += Final.g;
     colorArr[one_d_idx + 2] += Final.b;
+    colorArr[one_d_idx + 3] = 1.0f;
 }
 
 /*
@@ -196,9 +197,9 @@ __global__ void spawnRayProgressive(int seed, float * colorArr) {
 * Applies sqrt to gamma correct.
 */
 __device__ void converColorProgressive(const float * num, uint8_t *out) {
-    out[0] = num[0]>1?255:static_cast<uint8_t>(255 * sqrt(num[0]));
-    out[1] = num[1]>1?255:static_cast<uint8_t>(255 * sqrt(num[1]));
-    out[2] = num[2]>1?255:static_cast<uint8_t>(255 * sqrt(num[2]));
+    for(size_t i = 0; i < CHANNEL;++i) {
+        out[i] = num[i]>1?255:static_cast<uint8_t>(255 * sqrt(num[i]));
+    }
 }
 
 /*
@@ -225,9 +226,9 @@ __global__ void wipeArr(float * colorArr) {
     if(idx >= WIDTH || idy >= HEIGHT) {
         return;
     } 
-    colorArr[one_d_idx] = 0;
-    colorArr[one_d_idx + 1] = 0;
-    colorArr[one_d_idx + 2] = 0;
+    for(size_t i = 0; i < CHANNEL;++i) {
+        colorArr[i] = 0;
+    }
 }
 
 /*

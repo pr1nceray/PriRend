@@ -26,9 +26,8 @@ struct MatGpu {
     __device__ explicit MatGpu() = default;
     __device__ glm::vec3 samplePoint(const CollisionInfo * hitloc, const curandState_t * state) const;
     __device__ glm::vec2 getIdx(const CollisionInfo * hitLoc) const;
-    __device__ size_t getTextureIdx(const TextInfo * inf, const glm::vec2 * idx) const;
-    __device__ const float * getTextureColor(const TextInfo * inf, const glm::vec2 * idx) const;
-    __device__ const float * colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
+    __device__ const float4 getTextureColor(const TextInfo * inf, const glm::vec2 * idx) const;
+    __device__ const float4 colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
     __device__ float baseDiffuse(const glm::vec2 * idx, const shaderInfo * info) const;
     __device__ float baseSubsurface(const glm::vec2 * idx, const shaderInfo * info) const;
     TextInfo * TextureArr[5];
@@ -57,6 +56,6 @@ inline void handleCudaError(cudaError err) {
     if (err != cudaSuccess) {
         std::cerr << err << "\n";
         cudaDeviceReset();
-        throw std::runtime_error(" Issue with cuda; Error : " + std::string(cudaGetErrorString(err)));
+        throw std::runtime_error(" Issue with cuda; Error : " + std::string(cudaGetErrorString(err)) + "\n");
     }
 }
