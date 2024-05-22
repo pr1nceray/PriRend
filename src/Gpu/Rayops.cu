@@ -75,6 +75,7 @@ __device__ CollisionInfo checkCollisions(const Ray & ray) {
 __device__ Color evalIter(Ray & ray, curandState * const randState, const int bounceCount) {
     Color final = Color(1.0f, 1.0f, 1.0f);
     CollisionInfo collide;
+    shaderInfo shadingInfo;
     const MeshGpu * curMesh;
     for (size_t i = 0; i < static_cast<size_t>(bounceCount); ++i) {
         collide = checkCollisions(ray);
@@ -87,13 +88,13 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         collide.TQA = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x].TQ;
         collide.TQB = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y].TQ;
         collide.TQC = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z].TQ;
-
-        shaderInfo tmp;
-        final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &tmp));
-        // note : add .01f * newdir to avoid shadow acne
+        glm::vec3 & normal = curMesh->normalBuff[collide.faceIdx];
+        Ray oldRay = ray;
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
         ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
         ray.Origin = newOrigin + .001f * ray.Dir;
+        shadingInfo.setRequired(&oldRay, &ray, &normal);
+        final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &shadingInfo));
         collide.meshIdx = -1;
     }
     

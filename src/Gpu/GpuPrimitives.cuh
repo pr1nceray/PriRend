@@ -30,6 +30,7 @@ struct MatGpu {
     __device__ const float4 colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const;
     __device__ float baseDiffuse(const glm::vec2 * idx, const shaderInfo * info) const;
     __device__ float baseSubsurface(const glm::vec2 * idx, const shaderInfo * info) const;
+    __device__ float baseMetallic(const glm::vec2 * idx, const shaderInfo * info) const;
     TextInfo * TextureArr[5];
 };
 

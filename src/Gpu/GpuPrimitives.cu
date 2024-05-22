@@ -59,7 +59,14 @@ __device__ const float4 MatGpu::getTextureColor(const TextInfo * inf, const glm:
 */
 __device__ const float4 MatGpu::colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const {
     glm::vec2 idx = getIdx(hitLoc);
-    return getTextureColor(TextureArr[0], &idx);
+    const float diff = baseDiffuse(&idx, info);
+    const float ss = baseSubsurface(&idx, info);
+    const float finalColor = static_cast<float>((1-.2) * diff + .2*ss);
+    float4 color = getTextureColor(TextureArr[0], &idx);
+    color.x *= finalColor;
+    color.y *= finalColor;
+    color.z *= finalColor;
+    return color;
 }   
 
 /*
@@ -81,6 +88,11 @@ __device__ float MatGpu::baseSubsurface(const glm::vec2 * idx, const shaderInfo 
     const float VOLUMEABSORB = (1.0f/(info->ndotw_in + info->ndotw_out)) - .5f;
     const float baseSS = (1.25f/pi) * (FSSWIN * FSSWOUT * VOLUMEABSORB + .5f) * info->ndotw_out;
     return baseSS;
+}
+
+
+__device__ float MatGpu::baseMetallic(const glm::vec2 * idx, const shaderInfo * info) const {
+    const float FM = fabs(powf(info->hdotw_out, 5));
 }
 
 __device__ glm::vec3 MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state) const {

@@ -49,7 +49,7 @@ TextInfo* Material::loadImage(const std::string & fileName) {
         throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
     }
     float * newImageData = new float[CHANNELSTEXTURE * width * height];
-    // flipImage(imageData, width, height);
+    flipImage(imageData, width, height);
     convert(imageData, width * height * CHANNELSTEXTURE, newImageData);
     stbi_image_free(imageData);
     TextInfo *texture = new TextInfo();
@@ -95,8 +95,8 @@ void Material::flipImage(uint8_t *imageData, size_t width, size_t height) {
              imageData[idxSwap + (j * CHANNELSTEXTURE) +1]);
             std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 2], 
             imageData[idxSwap + (j * CHANNELSTEXTURE) + 2]);
-            //std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 3], 
-            //imageData[idxSwap + (j * CHANNELSTEXTURE) + 3]);
+            std::swap(imageData[idxNorm + (j * CHANNELSTEXTURE) + 3], 
+            imageData[idxSwap + (j * CHANNELSTEXTURE) + 3]);
         }
     }
 }
