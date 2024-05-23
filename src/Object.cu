@@ -114,6 +114,7 @@ void Object::processMaterials(const aiMaterial * mat, std::vector<Material> & ma
 void Object::checkBasic(Material * mat, const aiMaterial * matptr, aiTextureType type, Color c) {
     if(matptr->GetTextureCount(type) == 0) {
         mat->setBasic(c, type);
+        return;
     }
     processTextures(mat, matptr, type);
 }

@@ -22,10 +22,11 @@ const int FOV_Y = 60;
 const int FOV_X = 90;
 
 const int SPP = 256;
-const int BOUNCES = 16;
+const int BOUNCES = 8;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
+const float randEpsil = .0000000001f;
 
 const float pi = 3.1415926535;
 
@@ -80,7 +81,8 @@ __device__ const bool isZero(const glm::vec3 * in);
 */
 __host__ float generateRandomFloatH();
 __device__ float generateRandomFloatD(curandState * state);
-
+__device__ float generateNormalFloatD(curandState * state);
+__device__ float generateInvNormalFloatD(curandState * const state);
 /*
 * Generate uniformly random float on the range -1, 1
 */
@@ -92,3 +94,5 @@ __host__ uint8_t generateRandomNumH();
 */
 __host__ glm::vec3 generateRandomVecH();
 __device__ glm::vec3 generateRandomVecD(curandState * state);
+__device__ glm::vec3 generateNormalVecD(curandState * state);
+__device__ glm::vec3 generateInvNormalVecD(curandState * state);

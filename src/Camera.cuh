@@ -76,6 +76,7 @@ class Camera {
                 handleCudaError(cudaMemcpy(imageHost, imageDev, sizeImage, cudaMemcpyDeviceToHost));
                 Write_Image();
             }
+            std::cout << "finished row " << i << "\n";
         }
         handleCudaError(cudaDeviceSynchronize());
         convertArr<<<grid, block>>>(progressiveArr, imageDev);

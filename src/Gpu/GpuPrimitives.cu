@@ -112,13 +112,10 @@ __device__ glm::vec3 MeshGpu::generateReflectiveVecOnFace(const size_t faceIdx, 
     return glm::normalize(newDir);
 }
 
-__device__ glm::vec3 MeshGpu::generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const {
-    const glm::vec3 & normal = getFaceNormal(faceIdx);
-    const glm::vec3 newDir = dir - (2 * glm::dot(normal, dir) * normal);
-    if (isZero(&newDir)) {
-        return getFaceNormal(faceIdx);
-    }
-    return glm::normalize(newDir);
+__device__ glm::vec3 MeshGpu::generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir, curandState * state) const {
+    const glm::vec3 & reflected = generateReflectiveVecOnFace(faceIdx, dir);
+    const float fuzz = .1f;
+    return glm::normalize(reflected + fuzz * generateRandomVecD(state));
 }
 
 

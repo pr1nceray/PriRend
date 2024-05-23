@@ -45,7 +45,7 @@ struct MeshGpu {
 
     __device__ glm::vec3 generateRandomVecOnFace(const size_t faceIdx, curandState * state) const;
     __device__ glm::vec3 generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const;
-    __device__ glm::vec3 generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const;
+    __device__ glm::vec3 generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir, curandState * state) const;
 
     __device__ MatGpu const & getMaterial() const;
     __device__ const glm::vec3 & getFaceNormal(size_t idx) const;

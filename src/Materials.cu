@@ -42,11 +42,12 @@ void Material::loadTexture(const std::string & fileName, aiTextureType type) {
 
 TextInfo* Material::loadImage(const std::string & fileName) {
     int width, height, numChannel;
-    uint8_t * imageData = stbi_load(std::string("./assets/" + fileName).c_str(), 
+    uint8_t * imageData = stbi_load(std::string(fileName).c_str(), 
     & width, &height, &numChannel, CHANNELSTEXTURE);
 
-    if (imageData == NULL || stbi_failure_reason()) {
-        throw std::runtime_error("Error loading Texture file " + fileName  + ". See logs for more.");
+    if (imageData == NULL) {
+        throw std::runtime_error("Error loading Texture file " + fileName + "." +
+        std::string(stbi_failure_reason()));
     }
     float * newImageData = new float[CHANNELSTEXTURE * width * height];
     flipImage(imageData, width, height);

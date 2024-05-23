@@ -91,7 +91,12 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         glm::vec3 & normal = curMesh->normalBuff[collide.faceIdx];
         Ray oldRay = ray;
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-        ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
+        if(collide.meshIdx == 1) {
+            ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
+        } else {
+            ray.Dir = curMesh->generateRoughVecOnFace(collide.faceIdx, ray.Dir, randState);
+        }
+        
         ray.Origin = newOrigin + .001f * ray.Dir;
         shadingInfo.setRequired(&oldRay, &ray, &normal);
         final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &shadingInfo));
