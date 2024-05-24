@@ -1,11 +1,12 @@
 #include "GpuPrimitives.cuh"
 
-__device__ glm::vec3  MeshGpu::getFaceNormal(const CollisionInfo * info) const {
+__device__ glm::vec3 MeshGpu::getFaceNormal(const CollisionInfo * info) const {
     if(!isSmooth) {
         return normalBuff[info->faceIdx];
     }
     const glm::vec3 coords = getBays(info);
-    return info->A->Normal * coords.x + info->B->Normal * coords.y + info->C->Normal * coords.z;
+    const glm::vec3 newNorm = info->A->Normal * coords.x + info->B->Normal * coords.y + info->C->Normal * coords.z;
+    return newNorm;
 }
 
 

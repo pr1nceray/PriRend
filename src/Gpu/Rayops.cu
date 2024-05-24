@@ -83,14 +83,16 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
             float a = (.5 * (ray.Dir.y + 1.0));
             return  final * (Color(1, 1, 1) * (1-a)  + (Color(.5, .7, 1.0) * a));
         }
+    
         curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
-
         collide.A = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x];
         collide.B = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y];
         collide.C = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z];
-        glm::vec3 & normal = curMesh->normalBuff[collide.faceIdx];
+    
+        const glm::vec3 normal = curMesh->getFaceNormal(&collide);
         Ray oldRay = ray;
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
+
         if(collide.meshIdx == 2) {
             ray.Dir = curMesh->generateRoughVecOnFace(&collide, ray.Dir, randState);
         } else {
