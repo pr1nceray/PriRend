@@ -85,18 +85,18 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
         }
         curMesh = &(sceneInfo->meshDev[collide.meshIdx]);
 
-        collide.TQA = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x].TQ;
-        collide.TQB = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y].TQ;
-        collide.TQC = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z].TQ;
+        collide.A = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].x];
+        collide.B = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].y];
+        collide.C = &curMesh->vertexBuffer[curMesh->faceBuff[collide.faceIdx].z];
         glm::vec3 & normal = curMesh->normalBuff[collide.faceIdx];
         Ray oldRay = ray;
         glm::vec3 newOrigin = ray.Origin + collide.distanceMin * ray.Dir;
-        if(collide.meshIdx == 1) {
-            ray.Dir = curMesh->generateRandomVecOnFace(collide.faceIdx, randState);
+        if(collide.meshIdx == 2) {
+            ray.Dir = curMesh->generateRoughVecOnFace(&collide, ray.Dir, randState);
         } else {
-            ray.Dir = curMesh->generateRoughVecOnFace(collide.faceIdx, ray.Dir, randState);
+            ray.Dir = curMesh->generateRandomVecOnFace(&collide, randState);
         }
-        
+
         ray.Origin = newOrigin + .001f * ray.Dir;
         shadingInfo.setRequired(&oldRay, &ray, &normal);
         final = final * Color(sceneInfo->matDev[curMesh->matIdx].colorAt(&collide, &shadingInfo));
@@ -112,8 +112,8 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
 */
 __device__ Color traceRay(float u, float v, curandState * const randState) {
     Ray ray;
-    ray.Origin = glm::vec3(0, 0, 0); 
-    ray.Dir = glm::vec3(u, v, 1.0f);
+    ray.Origin = glm::vec3(0, -5.0f, 0); 
+    ray.Dir = glm::vec3(u, 1, -v);
     normalizeRayDir(ray);
     return evalIter(ray, randState, BOUNCES);
 }

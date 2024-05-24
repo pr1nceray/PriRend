@@ -42,17 +42,19 @@ struct MeshGpu {
     size_t faceSize;
     size_t vertexSize;
     size_t matIdx;
+    bool isSmooth;
 
-    __device__ glm::vec3 generateRandomVecOnFace(const size_t faceIdx, curandState * state) const;
-    __device__ glm::vec3 generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const;
-    __device__ glm::vec3 generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir, curandState * state) const;
+    __device__ glm::vec3 generateRandomVecOnFace(const CollisionInfo * info, curandState * state) const;
+    __device__ glm::vec3 generateReflectiveVecOnFace(const CollisionInfo * info, const glm::vec3 & dir) const;
+    __device__ glm::vec3 generateRefractiveVecOnFace(const CollisionInfo * info, const glm::vec3 & dir) const;
+    __device__ glm::vec3 generateRoughVecOnFace(const CollisionInfo * info, const glm::vec3 & dir, curandState * state) const;
 
     __device__ MatGpu const & getMaterial() const;
-    __device__ const glm::vec3 & getFaceNormal(size_t idx) const;
+    __device__ glm::vec3 getFaceNormal(const CollisionInfo * inf) const;
 };
 
 __device__ void printTextures(TextInfo * text);
-
+__device__ glm::vec3 getBays(const CollisionInfo * inf);
 inline void handleCudaError(cudaError err) {
     if (err != cudaSuccess) {
         std::cerr << err << "\n";

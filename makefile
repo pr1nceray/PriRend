@@ -44,4 +44,4 @@ style:
 	$(STYLE_CHECKER) $(STYLE_HEADERS) $(STYLE_EXTENSIONS) $(ALL_FILES)
 
 clean:
-	rm -fr *.o *.out *.exe
+	rm -fr *.o *.out *.exe *.png

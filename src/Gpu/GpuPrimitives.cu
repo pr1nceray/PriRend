@@ -1,5 +1,13 @@
 #include "GpuPrimitives.cuh"
 
+__device__ glm::vec3  MeshGpu::getFaceNormal(const CollisionInfo * info) const {
+    if(!isSmooth) {
+        return normalBuff[info->faceIdx];
+    }
+    const glm::vec3 coords = getBays(info);
+    return info->A->Normal * coords.x + info->B->Normal * coords.y + info->C->Normal * coords.z;
+}
+
 
 __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, const glm::vec3 * normal){
     h = glm::normalize(rayIn->Dir + rayOut->Dir);
@@ -15,29 +23,23 @@ __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, c
 }
 
 __device__ glm::vec3 MatGpu::samplePoint(const CollisionInfo * hitLoc, const curandState_t * state) const {
-    glm::vec2 idx = getIdx(hitLoc);
+    const glm::vec2 idx = getIdx(hitLoc);
     const float4 specColor = getTextureColor(TextureArr[2], &idx);
     const float4 MetalColor = getTextureColor(TextureArr[3], &idx);
     const float4 roughChance = getTextureColor(TextureArr[4], &idx);
 
     const float specular = (1.0f - (MetalColor.x)) * (1.0f - (MetalColor.x));
     const float dielectric = (1.0f - (MetalColor.x)) * (1.0f - (specColor.x));
-
     const float specularWeight = MetalColor.x + dielectric;
-
-
-
 }
 
 __device__ glm::vec2 MatGpu::getIdx(const CollisionInfo * hitLoc) const {
-    const float u = hitLoc->CollisionPoint.x;
-    const float v = hitLoc->CollisionPoint.y;
-    const float w = 1 - (hitLoc->CollisionPoint.x + hitLoc->CollisionPoint.y);
-    const glm::vec2 * PointA = hitLoc->TQA;
-    const glm::vec2 * PointB = hitLoc->TQB;
-    const glm::vec2 * PointC = hitLoc->TQC;
-    float idx = (w * PointA->x + u * PointB->x + v * PointC->x); 
-    float idy = (w * PointA->y + u * PointB->y + v * PointC->y);
+    const glm::vec3 coords = getBays(hitLoc);
+    const glm::vec2 * PointA = &hitLoc->A->TQ;
+    const glm::vec2 * PointB = &hitLoc->B->TQ;
+    const glm::vec2 * PointC = &hitLoc->C->TQ;
+    float idx = (coords.x * PointA->x + coords.y * PointB->x + coords.z * PointC->x); 
+    float idy = (coords.x * PointA->y + coords.y * PointB->y + coords.z * PointC->y);
     
    return glm::vec2(idx, idy);
 }
@@ -58,7 +60,7 @@ __device__ const float4 MatGpu::getTextureColor(const TextInfo * inf, const glm:
 * also : what is basecolor in this context?
 */
 __device__ const float4 MatGpu::colorAt(const CollisionInfo * hitLoc, const shaderInfo * info) const {
-    glm::vec2 idx = getIdx(hitLoc);
+    const glm::vec2 idx = getIdx(hitLoc);
     const float diff = baseDiffuse(&idx, info);
     const float ss = baseSubsurface(&idx, info);
     const float finalColor = static_cast<float>((1-.2) * diff + .2*ss);
@@ -95,29 +97,39 @@ __device__ float MatGpu::baseMetallic(const glm::vec2 * idx, const shaderInfo * 
     const float FM = fabs(powf(info->hdotw_out, 5));
 }
 
-__device__ glm::vec3 MeshGpu::generateRandomVecOnFace(const size_t faceIdx, curandState * state) const {
-    const glm::vec3 newDir = getFaceNormal(faceIdx) + generateRandomVecD(state);
+__device__ glm::vec3 MeshGpu::generateRandomVecOnFace(const CollisionInfo * info, curandState * state) const {
+    const glm::vec3 newDir = getFaceNormal(info) + generateRandomVecD(state);
     if (isZero(&newDir)) {
-        return getFaceNormal(faceIdx);
+        return getFaceNormal(info);
     }
     return glm::normalize(newDir);
 }
 
-__device__ glm::vec3 MeshGpu::generateReflectiveVecOnFace(const size_t faceIdx, const glm::vec3 & dir) const {
-    const glm::vec3 & normal = getFaceNormal(faceIdx);
+__device__ glm::vec3 MeshGpu::generateReflectiveVecOnFace(const CollisionInfo * info, const glm::vec3 & dir) const {
+    const glm::vec3 & normal = getFaceNormal(info);
     const glm::vec3 newDir = dir - (2 * glm::dot(normal, dir) * normal);
     if (isZero(&newDir)) {
-        return getFaceNormal(faceIdx);
+        return getFaceNormal(info);
     }
     return glm::normalize(newDir);
 }
 
-__device__ glm::vec3 MeshGpu::generateRoughVecOnFace(const size_t faceIdx, const glm::vec3 & dir, curandState * state) const {
-    const glm::vec3 & reflected = generateReflectiveVecOnFace(faceIdx, dir);
-    const float fuzz = .1f;
-    return glm::normalize(reflected + fuzz * generateRandomVecD(state));
+__device__ glm::vec3 MeshGpu::generateRefractiveVecOnFace(const CollisionInfo * info, const glm::vec3 & dir) const {
+    const glm::vec3 & normal = getFaceNormal(info);
+    const glm::vec3 newDir = dir - (2 * glm::dot(normal, dir) * normal);
+    return glm::normalize(newDir);
 }
 
+__device__ glm::vec3 MeshGpu::generateRoughVecOnFace(const CollisionInfo * info, const glm::vec3 & dir, curandState * state) const {
+    const glm::vec3 & reflected = generateReflectiveVecOnFace(info, dir);
+    const float fuzz = .075;
+    return glm::normalize(reflected + fuzz * .5f * generateInvNormalVecD(state));
+}
+
+__device__ glm::vec3 getBays(const CollisionInfo * inf) {
+    return glm::vec3(1 - (inf->CollisionPoint.x + inf->CollisionPoint.y), 
+    inf->CollisionPoint.x, inf->CollisionPoint.y);
+}
 
 __device__ void printTextures(TextInfo * text) {
     printf("P3\n");

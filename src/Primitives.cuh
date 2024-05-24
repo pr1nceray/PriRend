@@ -49,9 +49,9 @@ struct TextInfo {
 
 struct CollisionInfo {
     glm::vec2 CollisionPoint;
-    glm::vec2 * TQA;
-    glm::vec2 * TQB;
-    glm::vec2 * TQC;
+    Vertex * A;
+    Vertex * B;
+    Vertex * C;
     float distanceMin;
     int faceIdx;
     int meshIdx;

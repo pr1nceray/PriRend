@@ -2,18 +2,7 @@
 
 __device__ GpuInfo * sceneInfo;
 
-/*
-* TODO : Materials
-*/
-/*
-__device__ Material const & MeshGpu::getMaterial() const {
 
-}
-*/
-
-__device__ const glm::vec3 & MeshGpu::getFaceNormal(size_t idx) const {
-    return normalBuff[idx];
-}
 
 size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
     size_t total = 0;
@@ -126,6 +115,7 @@ void GpuInfo::copyBuff(void * & start, const std::vector<T> * data, T * & write)
 void GpuInfo::copyNormalBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {
     for (size_t i = 0; i < meshIn.size(); ++i) { 
         copyBuff<glm::vec3>(start, &meshIn[i].FaceNormals, meshHost[i].normalBuff);
+        meshHost[i].isSmooth = meshIn[i].isSmooth;
     }
 }
 void GpuInfo::copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost) {

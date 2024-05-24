@@ -52,7 +52,6 @@ struct GpuInfo {
     /*
     * Internal functions for copying material data
     */
-   void copyMaterial(void * & start);
 
 
 };  

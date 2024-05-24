@@ -21,7 +21,7 @@ struct Mesh {
     std::vector<glm::vec3> FaceNormals;
     std::vector<glm::vec3> EdgeMap;
     size_t MaterialIdx;
-
+    bool isSmooth;
     explicit Mesh() = default;
 
     explicit Mesh(const std::vector<Vertex> & Indicies_in) :

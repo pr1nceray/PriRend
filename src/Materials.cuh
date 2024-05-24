@@ -45,6 +45,7 @@ class Material {
     const TextInfo * getSpecular() const;
     const TextInfo * getMetallic() const;
     const TextInfo * getRoughness() const;
+    
     TextInfo ** getGpuTextures() const;
     TextInfo ** getHostTextures() const;
     
@@ -59,7 +60,6 @@ class Material {
     */
     TextInfo * textures[5];
     TextInfo * texturesDev[5];
-
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
     static std::vector<TextInfo *> allInfo;
     void convert(uint8_t * source, size_t max, float * out);

@@ -52,6 +52,12 @@ void Object::CreateMeshes(aiNode * node, const aiScene * scene, size_t baseMatId
 
 Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx) {
     Mesh meshlcl;
+    if(mesh->mNormals) {
+        meshlcl.isSmooth = true;
+    } else {
+        meshlcl.isSmooth = false;
+    }
+
     for (size_t i = 0; i < mesh->mNumVertices; ++i) {
         
         //DOES NOT WORK FOR OBJ FILES
@@ -61,7 +67,7 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
         // ALSO CHECK PREVIOUS GIT HISTORY FOR MORE INFO
 
         glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        glm::vec3 norm(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        glm::vec3 norm;
         glm::vec2 TQ = glm::vec2(0.0f, 0.0f);
 
         //only accept the first vertex coord.
@@ -69,6 +75,10 @@ Mesh Object::processMesh(aiMesh * mesh, const aiScene * scene, size_t baseMatIdx
             TQ = glm::vec2(mesh->mTextureCoords[0][i].x,
             mesh->mTextureCoords[0][i].y);
         }
+        if(mesh->mNormals) {
+            norm = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        }
+
         meshlcl.Indicies.push_back(Vertex{pos, norm, TQ});
     }
 
@@ -113,7 +123,8 @@ void Object::processMaterials(const aiMaterial * mat, std::vector<Material> & ma
 }
 void Object::checkBasic(Material * mat, const aiMaterial * matptr, aiTextureType type, Color c) {
     if(matptr->GetTextureCount(type) == 0) {
-        mat->setBasic(c, type);
+        Color randC = Color(generateRandomFloatH() + .5f, generateRandomFloatH() + .5f, generateRandomFloatH() + .5f);
+        mat->setBasic(randC, type);
         return;
     }
     processTextures(mat, matptr, type);
