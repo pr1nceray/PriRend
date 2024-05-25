@@ -1,7 +1,7 @@
 #include "./GpuInfo.cuh"
 
 __device__ GpuInfo * sceneInfo;
-
+__device__ CameraInfo camInf;
 
 
 size_t GpuInfo::sumMeshSizes(const std::vector<Mesh> & meshIn) const {
@@ -78,6 +78,10 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     handleCudaError(cudaMemcpy(matDev, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));
     matLen = matIn.size();
     delete[] matHost;
+}
+
+void GpuInfo::copyCameraData(const CameraInfo & camIn) {
+    cudaMemcpyToSymbol(camInf, &camIn, sizeof(CameraInfo));
 }
 
 /*

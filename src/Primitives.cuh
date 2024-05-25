@@ -14,15 +14,16 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 640;
+const int WIDTH = 1138;
 const int HEIGHT = 640;
 const int CHANNEL = 4;
 
-const int FOV_Y = 60;
-const int FOV_X = 90;
 
 const int SPP = 256;
 const int BOUNCES = 8;
+
+const float FOV_X = 90;
+const float FOV_Y = 60;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
 const float epsil = .000001;
@@ -34,6 +35,12 @@ struct Vertex {
     glm::vec3 Pos;
     glm::vec3 Normal;
     glm::vec2 TQ;
+};
+
+struct CameraInfo {
+    glm::vec3 center;
+    glm::vec3 lookingDir;
+    float zoom;
 };
 
 struct TextInfo {

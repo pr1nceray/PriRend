@@ -114,7 +114,7 @@ __device__ Color evalIter(Ray & ray, curandState * const randState, const int bo
 */
 __device__ Color traceRay(float u, float v, curandState * const randState) {
     Ray ray;
-    ray.Origin = glm::vec3(0, -5.0f, 0); 
+    ray.Origin = camInf.center;
     ray.Dir = glm::vec3(u, 1, -v);
     normalizeRayDir(ray);
     return evalIter(ray, randState, BOUNCES);
@@ -133,16 +133,16 @@ __global__ void spawnRay(int seed, uint8_t * colorArr) {
         return;
     } 
 
-    const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
-    const float delta_v = 1.0f/(HEIGHT);
+    const float delta_u = camInf.zoom * ASPECT_RATIO * 1.0f/(WIDTH); 
+    const float delta_v = camInf.zoom * 1.0f/(HEIGHT);
     curandState randState;
     curand_init(seed, one_d_idx ,0, &randState);
 
     Color Final;
 
     for (size_t i = 0; i < static_cast<size_t>(SPP); ++i) {
-        float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
-        float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
+        float u = camInf.zoom * ASPECT_RATIO * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
+        float v = camInf.zoom * (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT;
         
         // ANTI ALIASING!
         u += generateRandomFloatD(&randState) * delta_u;
@@ -179,13 +179,13 @@ __global__ void spawnRayProgressive(int seed, float * colorArr) {
         return;
     } 
 
-    const float delta_u = ASPECT_RATIO * 1.0f/(WIDTH); 
-    const float delta_v = 1.0f/(HEIGHT);
+    const float delta_u = camInf.zoom * ASPECT_RATIO * 1.0f/(WIDTH); 
+    const float delta_v = camInf.zoom * 1.0f/(HEIGHT);
     curandState randState;
     curand_init(seed, one_d_idx, 0, &randState);
 
-    float u =  (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
-    float v = (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
+    float u = camInf.zoom * ASPECT_RATIO *  (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
+    float v = camInf.zoom * (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
 
     u += generateRandomFloatD(&randState) * delta_u;
     v += generateRandomFloatD(&randState) * delta_v;

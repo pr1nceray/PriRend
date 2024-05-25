@@ -15,7 +15,7 @@
 class Camera {
     public:
     Camera() : 
-    cent(0, 0, 0, 0), rot(0, 0 ,0 ,0), imageHost(nullptr), imageDev(nullptr) {
+    imageHost(nullptr), imageDev(nullptr) {
         // used for host writing images
         const size_t sizePixel = CHANNEL * WIDTH * HEIGHT;
         sizeImage = sizePixel * sizeof(uint8_t);
@@ -23,6 +23,9 @@ class Camera {
         handleCudaError(cudaMalloc((void **)&imageDev, sizePixel * sizeof(uint8_t)));
         handleCudaError(cudaMalloc((void **)&progressiveArr, sizePixel * sizeof(float)));
         block = dim3(32,32,1);
+        camInf.center = glm::vec3(0,-10.0f, 0);
+        camInf.lookingDir = glm::vec3(0,1.0f,0);
+        camInf.zoom = .25f;
     }
 
     ~Camera() {
@@ -86,9 +89,11 @@ class Camera {
         Write_Image();
     }
 
+    CameraInfo getCamInfo() {
+        return camInf;
+    }
     private:
-    glm::vec4 cent;
-    glm::vec4 rot;
+    CameraInfo camInf;
 
     uint8_t * imageHost;
     uint8_t * imageDev; 

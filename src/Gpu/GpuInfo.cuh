@@ -23,18 +23,20 @@ struct GpuInfo {
     GpuInfo() = default; 
 
 
-    __host__ GpuInfo(const std::vector<Mesh> & meshIn, const std::vector<Material> & matIn) {
+    __host__ GpuInfo(const std::vector<Mesh> & meshIn, const std::vector<Material> & matIn, const CameraInfo & camInf) {
         copyIntoDevice(meshIn, matIn);
+        copyCameraData(camInf);
     }
 
     __host__ void freeResources();
-    private:
 
+    private:
     void copyIntoDevice(const std::vector<Mesh> & meshIn, const std::vector<Material> & matIn);
     void copyMeshData(const std::vector<Mesh> & meshIn);
     void copyMaterialData(const std::vector<Material> & matIn);
+    void copyCameraData(const CameraInfo & camIn);
 
-    private:
+    
     /*
     * Internal functions For copying vertex data
     */
@@ -44,15 +46,14 @@ struct GpuInfo {
     void copyEdgeBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyFaceBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void copyVertexBuff(void * & start, const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
-    void copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     void setLengthMesh( const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
     size_t sumMeshSizes(const std::vector<Mesh> & meshIn) const; 
     size_t sumMeshArr(const std::vector<Mesh> & meshIn) const; 
-    size_t sumMatArr(const std::vector<Material> & matIn) const;
     /*
     * Internal functions for copying material data
     */
-
+    size_t sumMatArr(const std::vector<Material> & matIn) const;
+    void copyMaterialIndex(const std::vector<Mesh> & meshIn, MeshGpu * meshHost);
 
 };  
 
@@ -62,3 +63,4 @@ __global__ void printMeshGlobal();
 __global__ void printMaterialInfo();
 __global__ void printBasicMaterialInfo();
 __device__ extern GpuInfo * sceneInfo;
+__device__ extern CameraInfo camInf;

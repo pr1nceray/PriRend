@@ -5,8 +5,7 @@ __device__ glm::vec3 MeshGpu::getFaceNormal(const CollisionInfo * info) const {
         return normalBuff[info->faceIdx];
     }
     const glm::vec3 coords = getBays(info);
-    const glm::vec3 newNorm = info->A->Normal * coords.x + info->B->Normal * coords.y + info->C->Normal * coords.z;
-    return newNorm;
+    return info->A->Normal * coords.x + info->B->Normal * coords.y + info->C->Normal * coords.z;
 }
 
 
@@ -27,11 +26,14 @@ __device__ glm::vec3 MatGpu::samplePoint(const CollisionInfo * hitLoc, const cur
     const glm::vec2 idx = getIdx(hitLoc);
     const float4 specColor = getTextureColor(TextureArr[2], &idx);
     const float4 MetalColor = getTextureColor(TextureArr[3], &idx);
-    const float4 roughChance = getTextureColor(TextureArr[4], &idx);
+    const float4 roughColor = getTextureColor(TextureArr[4], &idx);
 
-    const float specular = (1.0f - (MetalColor.x)) * (1.0f - (MetalColor.x));
-    const float dielectric = (1.0f - (MetalColor.x)) * (1.0f - (specColor.x));
-    const float specularWeight = MetalColor.x + dielectric;
+    
+    const float dielectricWeight = (1.0f - (MetalColor.x)) * (1.0f - (specColor.x));
+    const float metalWeight = (1.0f - specColor.x) * (1.0f - MetalColor.x);
+    const float glassWeight = (1.0f - MetalColor.x) * specColor.x;
+    const float clearcoatWeight = .25f;
+    
 }
 
 __device__ glm::vec2 MatGpu::getIdx(const CollisionInfo * hitLoc) const {

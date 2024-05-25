@@ -27,7 +27,7 @@ class Scene
                 sceneMeshs.push_back(curObj.getObjInfo()[j]);
             }
         }
-        GpuInfo temp = GpuInfo(sceneMeshs, sceneMats);
+        GpuInfo temp = GpuInfo(sceneMeshs, sceneMats, cam.getCamInfo());
         return temp;
     }
     
