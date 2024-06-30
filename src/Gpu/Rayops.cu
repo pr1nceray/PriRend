@@ -184,7 +184,7 @@ __global__ void spawnRayProgressive(int seed, float * colorArr) {
     curandState randState;
     curand_init(seed, one_d_idx, 0, &randState);
 
-    float u = camInf.zoom * ASPECT_RATIO *  (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
+    float u = camInf.zoom * (ASPECT_RATIO) * (static_cast<float>(idx) - (WIDTH/2.0))/WIDTH; 
     float v = camInf.zoom * (static_cast<float>(idy) - (HEIGHT/2.0))/HEIGHT; 
 
     u += generateRandomFloatD(&randState) * delta_u;

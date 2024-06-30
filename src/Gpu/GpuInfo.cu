@@ -68,11 +68,9 @@ void GpuInfo::copyMaterialData(const std::vector<Material> & matIn) {
     MatGpu * matHost = new MatGpu[matIn.size()];
 
     for (size_t i = 0; i < matIn.size(); i++) {
-        matHost[i].TextureArr[0] = matIn[i].getGpuTextures()[0];
-        matHost[i].TextureArr[1] = matIn[i].getGpuTextures()[1];
-        matHost[i].TextureArr[2] = matIn[i].getGpuTextures()[2];
-        matHost[i].TextureArr[3] = matIn[i].getGpuTextures()[3];
-        matHost[i].TextureArr[4] = matIn[i].getGpuTextures()[4];
+        for(size_t j = 0; j < TEXTURENUM; ++j) {
+            matHost[i].TextureArr[j] = matIn[i].getGpuTextures()[j];
+        }
     }
     
     handleCudaError(cudaMemcpy(matDev, matHost, matIn.size() * sizeof(MatGpu), cudaMemcpyHostToDevice));

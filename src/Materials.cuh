@@ -15,16 +15,17 @@
 #include "./Gpu/GpuPrimitives.cuh"
 
 #define CHANNELSTEXTURE 4
+
 /*
 * TODO : figure out materials.
 */
 class Material {
     public:
     explicit Material() {
-        for(size_t i = 0; i < 5; ++i) {
+        for(size_t i = 0; i < TEXTURENUM; ++i) {
             textures[i] = nullptr;
         }
-        for(size_t i = 0; i < 5; ++i) {
+        for(size_t i = 0; i < TEXTURENUM; ++i) {
             texturesDev[i] = nullptr;
         }
     }
@@ -55,11 +56,11 @@ class Material {
 
     /*
     * Order of materials : 
-    * Diffuse, Normal, Specular, Metallic, Roughness
+    * Diffuse, Normal, Specular, Metallic, Roughness, Emission
     * TexturesDev is textures, but on the gpu.
     */
-    TextInfo * textures[5];
-    TextInfo * texturesDev[5];
+    TextInfo * textures[TEXTURENUM];
+    TextInfo * texturesDev[TEXTURENUM];
     static std::unordered_map<std::string, TextInfo *> currentMaterials;
     static std::vector<TextInfo *> allInfo;
     void convert(uint8_t * source, size_t max, float * out);

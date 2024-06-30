@@ -17,7 +17,7 @@ __device__ void shaderInfo::setRequired(const Ray * rayIn, const Ray * rayOut, c
     hdotw_in = fabs(glm::dot(h, rayIn->Dir));
     hdotw_out = fabs(glm::dot(h, rayOut->Dir));
 
-    ndotw_in_pow5 = powf(ndotw_in,5);
+    ndotw_in_pow5 = powf(ndotw_in, 5);
     ndotw_out_pow5 = powf(ndotw_out, 5);
 
 }

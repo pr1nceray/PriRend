@@ -8,7 +8,8 @@ std::vector<TextInfo *> Material::allInfo;
 // quick way to map aiTextureType enum to size_t
 const std::unordered_map<aiTextureType, size_t> textureEnumToIndex {
 {aiTextureType_DIFFUSE, 0}, {aiTextureType_NORMALS, 1}, {aiTextureType_SPECULAR, 2}, 
-{aiTextureType_METALNESS, 3},  {aiTextureType_DIFFUSE_ROUGHNESS, 4}};
+{aiTextureType_METALNESS, 3},  {aiTextureType_DIFFUSE_ROUGHNESS, 4}, {aiTextureType_EMISSION_COLOR, 5},
+{aiTextureType_EMISSIVE, 6}};
 
 const std::unordered_map<std::string, TextInfo *> & Material::getTextures() {
     return currentMaterials;

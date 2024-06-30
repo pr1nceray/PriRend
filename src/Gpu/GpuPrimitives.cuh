@@ -31,7 +31,7 @@ struct MatGpu {
     __device__ float baseDiffuse(const glm::vec2 * idx, const shaderInfo * info) const;
     __device__ float baseSubsurface(const glm::vec2 * idx, const shaderInfo * info) const;
     __device__ float baseMetallic(const glm::vec2 * idx, const shaderInfo * info) const;
-    TextInfo * TextureArr[5];
+    TextInfo * TextureArr[TEXTURENUM];
 };
 
 struct MeshGpu {

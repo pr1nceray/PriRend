@@ -25,7 +25,7 @@ class Camera {
         block = dim3(32,32,1);
         camInf.center = glm::vec3(0,-10.0f, 0);
         camInf.lookingDir = glm::vec3(0,1.0f,0);
-        camInf.zoom = .25f;
+        camInf.zoom = 1.0f;
     }
 
     ~Camera() {

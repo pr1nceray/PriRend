@@ -14,8 +14,8 @@
 
 #include "./Color.cuh"
 
-const int WIDTH = 1138;
-const int HEIGHT = 640;
+const int WIDTH = 1152;
+const int HEIGHT = 648;
 const int CHANNEL = 4;
 
 
@@ -26,10 +26,13 @@ const float FOV_X = 90;
 const float FOV_Y = 60;
 
 const float ASPECT_RATIO = static_cast<float>(WIDTH)/HEIGHT;
+const float DESIRED_AR = 16.0f/9.0f;
 const float epsil = .000001;
 const float randEpsil = .0000000001f;
 
 const float pi = 3.1415926535;
+
+const int TEXTURENUM = 7;
 
 struct Vertex {
     glm::vec3 Pos;
